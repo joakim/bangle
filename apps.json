@@ -1552,10 +1552,12 @@
     ]
   },
   { "id": "clock360",
-    "name": "360° Clock",
-    "shortName" : "360° Clock",
+    "name": "360 Clock",
+    "shortName" : "360 Clock",
     "icon": "clock360.png",
+    "version":"0.01",
     "description": "Time in 360 degrees.",
+    "type": "clock",
     "tags": "clock",
     "allow_emulator": true
   }
