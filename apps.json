@@ -1551,7 +1551,7 @@
       {"name":"hidjoystick.img","url":"app-icon.js","evaluate":true}
     ]
   },
-  { "id": "360clock",
+  { "id": "clock360",
     "name": "360° Clock",
     "shortName" : "360° Clock",
     "icon": "clock360.png",
