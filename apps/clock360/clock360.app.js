@@ -1,7 +1,8 @@
-// var locale = require('locale')
+// Show launcher when middle button pressed
+setWatch(Bangle.showLauncher, BTN2, { repeat: false, edge: 'falling' })
+
 var degrees = -1
 var ticks = -1
-//var time24 = ""
 
 const screen = {
   width: g.getWidth(),
@@ -180,28 +181,7 @@ const drawClock = function () {
     writeDegree(degrees)
     writeTick(ticks)
   }
-
-  //writeConventionalTime(now)
 }
-
-/*
-const writeConventionalTime = function (now) {
-  var localTime = locale.time(now, 1)
-  if (time24 !== localTime) {
-    time24 = localTime
-
-    // Reset
-    g.setColor('#000000')
-    g.fillRect(0, settings.date.middle, g.getWidth(), g.getHeight())
-
-    // Draw
-    g.setColor(settings.date.color)
-    g.setFont(settings.date.font, settings.date.size)
-    g.drawString(locale.date(now, 1), screen.center - 120, settings.date.middle)
-    g.drawString(localTime, screen.center + 85, settings.date.middle)
-  }
-}
-*/
 
 Bangle.on('lcdPower', function (on) {
   if (on) drawClock()
@@ -218,6 +198,3 @@ setInterval(drawClock, 2400)
 // Draw clock now
 drawOutlines()
 drawClock()
-
-// Show launcher when middle button pressed
-setWatch(Bangle.showLauncher, BTN2, { repeat: false, edge: 'falling' })
