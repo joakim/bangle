@@ -3,6 +3,7 @@
   "description": "Bangle.js App Loader (and Apps)",
   "author": "Gordon Williams <gw@pur3.co.uk> (http://espruino.com)",
   "version": "0.0.1",
+  "homepage: "https://joakim.github.io/BangleApps/",
   "devDependencies": {
     "acorn": ""
   },
