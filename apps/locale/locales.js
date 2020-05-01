@@ -446,8 +446,8 @@ var locales = {
         day: "neděle,pondělí,úterý,středa,čtvrtek,pátek,sobota",
         trans: { yes: "tak", Yes: "Tak", no: "nie", No: "Nie", ok: "ok", on: "na", off: "poza" }
     },
-    "no_NO": {
-        lang: "no_NO",
+    "nb_NO": {
+        lang: "nb_NO",
         decimal_point: ",",
         thousands_sep: ".",
         currency_symbol: "kr",
