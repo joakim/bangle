@@ -445,5 +445,23 @@ var locales = {
         abday: "ne,po,út,st,čt,pá,so",
         day: "neděle,pondělí,úterý,středa,čtvrtek,pátek,sobota",
         trans: { yes: "tak", Yes: "Tak", no: "nie", No: "Nie", ok: "ok", on: "na", off: "poza" }
+    },
+    "no_NO": {
+        lang: "no_NO",
+        decimal_point: ",",
+        thousands_sep: ".",
+        currency_symbol: "kr",
+        int_curr_symbol: "NOK",
+        speed: "kmh",
+        distance: { 0: "m", 1: "km" },
+        temperature: "°C",
+        ampm: { 0: "am", 1: "pm" },
+        timePattern: { 0: "%HH:%MM:%SS ", 1: "%HH:%MM" },
+        datePattern: { 0: "%A %B. %d %Y", "1": "%d.%m.%Y" }, // fredag 1. mai 2020 //  01.05.2020
+        abmonth: "jan,feb,mars,apr,mai,juni,juli,aug,sep,okt,nov,des",
+        month: "januar,februar,mars,april,mai,juni,juli,august,september,oktober,november,desember",
+        abday: "søn,man,tir,ons,tor,fre,lør",
+        day: "søndag,mandag,tirsdag,onsdag,torsdag,fredag,lørdag",
+        trans: { yes: "ja", Yes: "Ja", no: "nei", No: "Nei", ok: "ok", on: "på", off: "av" }
     }
 };
