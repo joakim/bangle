@@ -19,10 +19,13 @@
     setInterval(redraw, 10 * 60 * 1000)
 
     // and why not next midnight
+    /*
+    let now = new Date()
     let tomorrow = new Date()
     tomorrow.setHours(0, 0, 0, 0)
     tomorrow.setDate(tomorrow.getDate() + 1)
     setTimeout(redraw, tomorrow - now)
+    */
   }
 
   WIDGETS['calendar360'] = {
