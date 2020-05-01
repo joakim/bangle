@@ -1569,7 +1569,7 @@
   { "id": "calendar360",
     "name": "360 Calendar",
     "shortName": "360 Calendar",
-    "version":"0.13",
+    "version":"0.14",
     "description": "The calendar year in 360 degrees.",
     "tags": "calendar,tool",
     "sortorder" : -8,
