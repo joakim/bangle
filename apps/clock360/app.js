@@ -77,26 +77,28 @@ let drawOutlines = function () {
 }
 
 let writeDegree = function (degrees) {
-  g.setColor('#000000')
-    .fillRect(73, 83, 168, 126)
+  g.setColor('#f00000')
+    .fillRect(73, 80, 168, 125)
     .setColor(settings.colors.degrees)
     .setFont('Vector', 45)
+    .setFontAlign(0, 0)
     .drawString(
       String('00' + degrees).slice(-3),
-      screen.center - 48,
-      screen.middle - 40
+      screen.center,
+      screen.middle - 20
     )
 }
 
 let writeTick = function (ticks) {
-  g.setColor('#000000')
-    .fillRect(97, 137, 140, 166)
+  g.setColor('#f00000')
+    .fillRect(99, 135, 142, 167)
     .setColor(settings.colors.ticks)
     .setFont('Vector', 30)
+    .setFontAlign(0, 0)
     .drawString(
       String('0' + ticks).slice(-2),
-      screen.center - 23,
-      screen.middle + 15
+      screen.center,
+      screen.middle + 30
     )
 }
 
@@ -158,8 +160,9 @@ let drawClock = function () {
           screen.width,
           screen.height
         )
-        .setColor('#fafafa')
+        .setColor('#cccccc')
         .setFont('Vector', 10)
+        .setFontAlign(-1, -1)
         .drawString(
           locale.time(localtime, 1),
           screen.width - 45,
@@ -195,8 +198,9 @@ let newDay = function () {
   // Update calendar day fields
   g.setColor('#000000')
     .fillRect(15, screen.height - 14, screen.width - 50, screen.height)
-    .setColor('#fafafa')
+    .setColor('#cccccc')
     .setFont('Vector', 10)
+    .setFontAlign(-1, -1)
     .drawString(
       locale.date(now).replace(/ 0/, ' '), // Fix locale bug where it only supports %d (0-padded)
       15,
@@ -209,7 +213,7 @@ Bangle.on('lcdPower', function (on) {
 })
 
 // Clean app screen
-g.clear(true)
+g.clear()
 Bangle.loadWidgets()
 Bangle.drawWidgets()
 
