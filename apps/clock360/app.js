@@ -1,12 +1,4 @@
-// Show launcher on BTN2 long-press
-setWatch(
-  (e) => {
-    let duration = e.time - e.lastTime
-    if (duration >= 0.15) Bangle.showLauncher()
-  },
-  BTN2,
-  { repeat: false, edge: 'falling' }
-)
+setWatch(Bangle.showLauncher, BTN2, { repeat: false, edge: 'falling' })
 
 const locale = require('locale')
 
@@ -29,6 +21,9 @@ let settings = {
     highlight: '#fafafa',
   },
 }
+
+// Reset the state of graphics
+g.reset()
 
 let get360Time = function (date) {
   // Work with a copy so as not to mutate the orignal date object
