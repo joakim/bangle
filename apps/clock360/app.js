@@ -22,9 +22,6 @@ let settings = {
   },
 }
 
-// Reset the state of graphics
-g.reset()
-
 let get360Time = function (date) {
   // Work with a copy so as not to mutate the orignal date object
   let d = new Date(date.valueOf())
@@ -212,7 +209,7 @@ Bangle.on('lcdPower', function (on) {
 })
 
 // Clean app screen
-g.clear().setFontAlign(0, 0, 0)
+g.clear(true)
 Bangle.loadWidgets()
 Bangle.drawWidgets()
 
