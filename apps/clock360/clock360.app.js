@@ -1,37 +1,55 @@
 // Show launcher when middle button pressed
 setWatch(Bangle.showLauncher, BTN2, { repeat: false, edge: 'falling' })
 
-var degrees = -1
-var ticks = -1
-var midnight = new Date().setHours(0, 0, 0, 0)
+const locale = require('locale')
+const calendar = require('./calendar.js')
 
-// Compensates for accumulated error due to inaccurate timer
-const compensatedTimeout = function (now) {
-  var counted = (degrees * 100 + ticks) * 2400
-  var offset = now - midnight - counted
-  var result = 2400 - Math.max(offset, 0)
-  console.log(result)
-  return result
-}
+let today = {}
+let midnight = 0
+let degrees = -1
+let ticks = -1
+let minutes = -1
 
-const screen = {
+let screen = {
   width: g.getWidth(),
   height: g.getWidth(),
   middle: g.getWidth() / 2,
   center: g.getHeight() / 2,
 }
 
-const settings = {
+let settings = {
   colors: {
     ticks: '#ff9500',
     degrees: '#00aaff',
-    highlight: '#eeeeee',
+    highlight: '#fafafa',
   },
 }
 
-const get360Time = function (date) {
+let newDay = function () {
+  let now = new Date()
+
+  // Update day variables
+  midnight = now.setHours(0, 0, 0, 0)
+  today = calendar.joakim_from_gregorian([
+    now.getFullYear(),
+    now.getMonth() + 1,
+    now.getDate(),
+  ])
+
+  // Update calendar day fields
+  g.setColor('#000000')
+    .fillRect(0, 0, 46, 21)
+    .fillRect(0, screen.height - 14, screen.width - 50, screen.height)
+    .setColor('#fafafa')
+    .setFont('Vector', 20)
+    .drawString('XABCDX'[today.quarter] + today.dayOfQuarter, 0, 0, true)
+    .setFont('Vector', 10)
+    .drawString(locale.date(now), 0, screen.height - 13)
+}
+
+let get360Time = function (date) {
   // Work with a copy so as not to mutate the orignal date object
-  var d = new Date(date.valueOf())
+  let d = new Date(date.valueOf())
 
   // Divide conventional time into 360 degrees of 240 seconds each and
   // reduce the value to an object with properties "degrees" and "ticks"
@@ -44,16 +62,16 @@ const get360Time = function (date) {
     }, {})
 }
 
-const getArcXY = function (centerX, centerY, radius, angle) {
-  var s
-  var r = []
+let getArcXY = function (centerX, centerY, radius, angle) {
+  let s
+  let r = []
   s = (2 * Math.PI * angle) / 360
   r.push(centerX + Math.round(Math.cos(s) * radius))
   r.push(centerY + Math.round(Math.sin(s) * radius))
   return r
 }
 
-const drawDegree = function (sections) {
+let drawDegree = function (sections) {
   rad = screen.height / 2 - 20
   r1 = getArcXY(screen.middle, screen.center, rad, sections - 90)
   r2 = getArcXY(screen.middle, screen.center, rad - 10, sections - 90)
@@ -63,7 +81,7 @@ const drawDegree = function (sections) {
   ).drawRect(r1[0], r1[1], r2[0], r2[1])
 }
 
-const drawTick = function (sections) {
+let drawTick = function (sections) {
   rad = screen.height / 2 - 37
   r1 = getArcXY(screen.middle, screen.center, rad, sections * (360 / 100) - 90)
   r2 = getArcXY(
@@ -77,13 +95,13 @@ const drawTick = function (sections) {
   ).drawLine(r1[0], r1[1], r2[0], r2[1])
 }
 
-const drawOutlines = function () {
+let drawOutlines = function () {
   g.setColor('#333333')
     .drawCircle(screen.middle, screen.center, screen.height / 2 - 37 - 10 - 4)
     .drawCircle(screen.middle, screen.center, screen.height / 2 - 20 - 10 - 4)
 }
 
-const writeDegree = function (degrees) {
+let writeDegree = function (degrees) {
   g.setColor('#000000')
     .fillRect(73, 83, 168, 126)
     .setColor(settings.colors.degrees)
@@ -95,7 +113,7 @@ const writeDegree = function (degrees) {
     )
 }
 
-const writeTick = function (ticks) {
+let writeTick = function (ticks) {
   g.setColor('#000000')
     .fillRect(97, 137, 140, 166)
     .setColor(settings.colors.ticks)
@@ -107,9 +125,9 @@ const writeTick = function (ticks) {
     )
 }
 
-const drawClock = function () {
-  var now = new Date()
-  var time = get360Time(now)
+let drawClock = function () {
+  let now = new Date()
+  let time = get360Time(now)
 
   if (time.ticks != ticks) {
     // If it's a new degree, reset ticks count and circles
@@ -119,7 +137,7 @@ const drawClock = function () {
       g.setColor('#000000').fillCircle(
         screen.middle,
         screen.center,
-        screen.height / 2 - (time.degrees === 0 ? 20 : 35)
+        screen.height / 2 - (time.degrees === 0 ? 18 : 35)
       )
 
       drawOutlines()
@@ -127,10 +145,10 @@ const drawClock = function () {
 
     // Add new degree(s)
     if (time.degrees != degrees) {
-      // If it's a new day, reset degrees count and update midnight mark
+      // If it's a new day, reset degrees count and day variables
       if (degrees > time.degrees) {
         degrees = -1
-        midnight = new Date().setHours(0, 0, 0, 0)
+        newDay()
       }
 
       for (i = degrees + 1; i <= time.degrees; i++) {
@@ -149,10 +167,32 @@ const drawClock = function () {
 
     writeDegree(degrees)
     writeTick(ticks)
+
+    // Update 24 hour clock
+    if (now.getMinutes() != minutes) {
+      g.setColor('#000000')
+        .fillRect(
+          screen.width - 50,
+          screen.height - 14,
+          screen.width,
+          screen.height
+        )
+        .setColor('#fafafa')
+        .setFont('Vector', 10)
+        .drawString(locale.time(now, 1), screen.width - 35, screen.height - 13)
+    }
   }
 
   // Run again on next tick
   setTimeout(drawClock, compensatedTimeout(now))
+}
+
+// Compensates for accumulated error due to inaccurate timer
+let compensatedTimeout = function (now) {
+  let counted = (degrees * 100 + ticks) * 2400
+  let offset = now - midnight - counted
+  let result = 2400 - Math.max(offset, 0)
+  return result
 }
 
 Bangle.on('lcdPower', function (on) {
@@ -165,5 +205,6 @@ Bangle.loadWidgets()
 Bangle.drawWidgets()
 
 // Draw clock now
+newDay()
 drawOutlines()
 drawClock()
