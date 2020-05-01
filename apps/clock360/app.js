@@ -183,7 +183,11 @@ let newDay = function () {
     .fillRect(15, screen.height - 14, screen.width - 50, screen.height)
     .setColor('#fafafa')
     .setFont('Vector', 10)
-    .drawString(locale.date(now), 15, screen.height - 13)
+    .drawString(
+      locale.dow(now) + ' ' + locale.date(now, 1),
+      15,
+      screen.height - 13
+    )
 }
 
 Bangle.on('lcdPower', function (on) {
