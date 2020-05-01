@@ -1555,14 +1555,13 @@
     "name": "360 Clock",
     "shortName" : "360 Clock",
     "icon": "clock360.png",
-    "version":"0.03",
+    "version":"0.04",
     "description": "Time in 360 degrees.",
     "type": "clock",
     "tags": "clock",
     "allow_emulator": true,
     "storage": [
       {"name":"clock360.app.js","url":"clock360.app.js"},
-      {"name":"calendar","url":"calendar.js"},
       {"name":"clock360.img","url":"app-icon.js","evaluate":true}
     ]
   }
