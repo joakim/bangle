@@ -11,6 +11,7 @@ g.clear()
   .drawString(day, 64, 64 + 25)
 
 // Save to storage for use by widget
-let data = storage.readJSON('calendar360.json', 1) || {}
+let data = storage.readJSON('calendar360.json', 1) || { today: '…' }
+data.date = date
 data.today = day
 storage.writeJSON('calendar360.json', data)
