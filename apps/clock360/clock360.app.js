@@ -53,7 +53,7 @@ let drawDegree = function (sections) {
   //g.setPixel(r1[0],r1[1])
   g.setColor(
     (sections / 90) % 1 ? settings.colors.degrees : settings.colors.highlight
-  ).drawRect(r1[0], r1[1], r2[0], r2[1])
+  ).drawLine(r1[0], r1[1], r2[0], r2[1])
 }
 
 let drawTick = function (sections) {
@@ -145,6 +145,8 @@ let drawClock = function () {
 
     // Update 24 hour clock
     if (now.getMinutes() != minutes) {
+      minutes = now.getMinutes()
+
       g.setColor('#000000')
         .fillRect(
           screen.width - 50,
@@ -154,7 +156,7 @@ let drawClock = function () {
         )
         .setColor('#fafafa')
         .setFont('Vector', 10)
-        .drawString(locale.time(now, 1), screen.width - 35, screen.height - 13)
+        .drawString(locale.time(now, 1), screen.width - 45, screen.height - 13)
     }
   }
 
@@ -178,10 +180,10 @@ let newDay = function () {
 
   // Update calendar day fields
   g.setColor('#000000')
-    .fillRect(0, screen.height - 14, screen.width - 50, screen.height)
+    .fillRect(15, screen.height - 14, screen.width - 50, screen.height)
     .setColor('#fafafa')
     .setFont('Vector', 10)
-    .drawString(locale.date(now), 0, screen.height - 13)
+    .drawString(locale.date(now), 15, screen.height - 13)
 }
 
 Bangle.on('lcdPower', function (on) {
