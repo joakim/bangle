@@ -162,10 +162,10 @@ let drawClock = function () {
         )
         .setColor('#cccccc')
         .setFont('Vector', 10)
-        .setFontAlign(-1, -1)
+        .setFontAlign(1, -1)
         .drawString(
           locale.time(localtime, 1),
-          screen.width - 45,
+          screen.width - 15,
           screen.height - 13
         )
     }
@@ -195,9 +195,12 @@ let newDay = function () {
     .setColor('#cccccc')
     .setFont('Vector', 10)
     .setFontAlign(-1, -1)
+    .drawString(locale.dow(now), 15, screen.height - 13)
+    .setFontAlign(0, -1)
+    // Remove weekday and fix locale bug where it only supports %d (0-padded)
     .drawString(
-      locale.date(now).replace(/ 0/, ' '), // Fix locale bug where it only supports %d (0-padded)
-      15,
+      locale.date(now).replace(/\w+ 0?/, ''),
+      screen.middle,
       screen.height - 13
     )
 }
