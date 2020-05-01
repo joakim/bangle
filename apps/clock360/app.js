@@ -147,6 +147,10 @@ let drawClock = function () {
     if (now.getMinutes() != minutes) {
       minutes = now.getMinutes()
 
+      // Adjust local time for DST
+      let localtime = new Date(now.valueOf())
+      if (isDST(localtime)) localtime.setHours(localtime.getHours() + 1)
+
       g.setColor('#000000')
         .fillRect(
           screen.width - 50,
@@ -156,7 +160,11 @@ let drawClock = function () {
         )
         .setColor('#fafafa')
         .setFont('Vector', 10)
-        .drawString(locale.time(now, 1), screen.width - 45, screen.height - 13)
+        .drawString(
+          locale.time(localtime, 1),
+          screen.width - 45,
+          screen.height - 13
+        )
     }
   }
 
@@ -170,6 +178,12 @@ let compensatedTimeout = function (now) {
   let offset = now - midnight - counted
   let result = 2400 - Math.max(offset, 0)
   return result
+}
+
+let isDST = function (date) {
+  let jan = new Date(date.getFullYear(), 0, 1).getTimezoneOffset()
+  let jul = new Date(date.getFullYear(), 6, 1).getTimezoneOffset()
+  return Math.max(jan, jul) != date.getTimezoneOffset()
 }
 
 let newDay = function () {
