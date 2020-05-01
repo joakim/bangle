@@ -1,4 +1,4 @@
-// Show launcher on BTN3 long-press
+// Show launcher on BTN2 long-press
 setWatch(
   (e) => {
     let duration = e.time - e.lastTime
