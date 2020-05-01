@@ -1555,7 +1555,7 @@
     "name": "360 Clock",
     "shortName" : "360 Clock",
     "icon": "clock360.png",
-    "version":"0.15",
+    "version":"0.16",
     "description": "Time in 360 degrees.",
     "type": "clock",
     "tags": "clock",
@@ -1568,7 +1568,7 @@
   { "id": "calendar360",
     "name": "360 Calendar",
     "shortName": "360 Calendar",
-    "version":"0.16",
+    "version":"0.15",
     "description": "The calendar year in 360 degrees.",
     "tags": "calendar,tool",
     "storage": [
