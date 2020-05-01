@@ -1555,7 +1555,7 @@
     "name": "360 Clock",
     "shortName" : "360 Clock",
     "icon": "clock360.png",
-    "version":"0.08",
+    "version":"0.09",
     "description": "Time in 360 degrees.",
     "type": "clock",
     "tags": "clock",
@@ -1569,13 +1569,11 @@
   { "id": "calendar360",
     "name": "Calendar 360",
     "shortName": "Calendar 360",
-    "version":"0.05",
+    "version":"0.06",
     "description": "The year in 360 degrees.",
     "tags": "calendar,tool",
-    "type": "widget",
     "storage": [
       {"name": "calendar360.app.js","url":"app.js"},
-      {"name": "calendar360.wid.js","url":"widget.js"},
       {"name": "calendar.js", "url": "calendar.js"}
     ]
   }
