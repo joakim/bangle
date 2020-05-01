@@ -184,7 +184,7 @@ let newDay = function () {
     .setColor('#fafafa')
     .setFont('Vector', 10)
     .drawString(
-      locale.dow(now) + ' ' + locale.date(now, 1),
+      locale.date(now).replace(/ 0/, ' '), // Fix locale bug where it only supports %d (0-padded)
       15,
       screen.height - 13
     )
