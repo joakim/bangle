@@ -199,7 +199,7 @@ let newDay = function () {
     .setFontAlign(0, -1)
     // Remove weekday and fix locale bug where it only supports %d (0-padded)
     .drawString(
-      locale.date(now).replace(/\w+ 0?/, ''),
+      locale.date(now).replace(/\w+ /, '').replace(/$0/, ''),
       screen.middle,
       screen.height - 13
     )
