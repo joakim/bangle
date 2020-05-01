@@ -2,7 +2,7 @@
 setWatch(Bangle.showLauncher, BTN2, { repeat: false, edge: 'falling' })
 
 const locale = require('locale')
-const calendar = require('./calendar.js')
+const calendar = require('calendar')
 
 let today = {}
 let midnight = 0
