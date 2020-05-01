@@ -1,4 +1,12 @@
-setWatch(Bangle.showLauncher, BTN2, { repeat: false, edge: 'falling' })
+// Show launcher on BTN2 long-press
+setWatch(
+  (e) => {
+    let duration = e.time - e.lastTime
+    if (duration >= 0.15) Bangle.showLauncher()
+  },
+  BTN2,
+  { repeat: false, edge: 'falling' }
+)
 
 const locale = require('locale')
 
