@@ -77,7 +77,7 @@ let drawOutlines = function () {
 }
 
 let writeDegree = function (degrees) {
-  g.setColor('#f00000')
+  g.setColor('#000000')
     .fillRect(73, 80, 168, 125)
     .setColor(settings.colors.degrees)
     .setFont('Vector', 45)
@@ -90,7 +90,7 @@ let writeDegree = function (degrees) {
 }
 
 let writeTick = function (ticks) {
-  g.setColor('#f00000')
+  g.setColor('#000000')
     .fillRect(99, 135, 142, 167)
     .setColor(settings.colors.ticks)
     .setFont('Vector', 30)
