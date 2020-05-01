@@ -6,4 +6,4 @@ let output = 'XABCDX'[date.quarter] + date.dayOfQuarter
 
 g.setFont('Vector', 50)
 g.setFontAlign(0, 0)
-g.drawString(output, g.getWidth() / 2, g.getHeight() / 2)
+g.drawString(output, 25, 25)
