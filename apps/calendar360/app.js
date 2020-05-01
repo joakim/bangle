@@ -13,7 +13,7 @@ const calendar = require('calendar.js')
 
 let now = new Date()
 let date = calendar.convert(now)
-let day = 'XABCDX'[date.quarter] + date.dayOfQuarter
+let day = 'XABCD'[date.quarter] + date.dayOfQuarter
 
 // Write to display
 g.clear()
