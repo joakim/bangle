@@ -151,7 +151,7 @@ let drawClock = function () {
 
       // Adjust local time for DST
       let localtime = new Date(now.valueOf())
-      if (isDST(localtime)) localtime.setHours(localtime.getHours() + 1)
+      localtime.setHours(localtime.getHours() + 1)
 
       g.setColor('#000000')
         .fillRect(
@@ -181,12 +181,6 @@ let compensatedTimeout = function (now) {
   let offset = now - midnight - counted
   let result = 2400 - Math.max(offset, 0)
   return result
-}
-
-let isDST = function (date) {
-  let jan = new Date(date.getFullYear(), 0, 1).getTimezoneOffset()
-  let jul = new Date(date.getFullYear(), 6, 1).getTimezoneOffset()
-  return Math.max(jan, jul) != date.getTimezoneOffset()
 }
 
 let newDay = function () {
