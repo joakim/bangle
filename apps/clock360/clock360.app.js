@@ -3,6 +3,16 @@ setWatch(Bangle.showLauncher, BTN2, { repeat: false, edge: 'falling' })
 
 var degrees = -1
 var ticks = -1
+var midnight = new Date().setHours(0, 0, 0, 0)
+
+// Compensates for accumulated error due to inaccurate timer
+const compensatedTimeout = function (now) {
+  var counted = (degrees * 100 + ticks) * 2400
+  var offset = now - midnight - counted
+  var result = 2400 - Math.max(offset, 0)
+  console.log(result)
+  return result
+}
 
 const screen = {
   width: g.getWidth(),
@@ -11,45 +21,25 @@ const screen = {
   center: g.getHeight() / 2,
 }
 
-// Settings
 const settings = {
-  time: {
-    offset: 60,
-    color: '#f0af00',
-    shadow: '#CF7500',
-    font: 'Vector',
-    size: 40,
-    middle: screen.middle - 45,
-    center: screen.center - 43,
-  },
-  date: {
-    color: '#ffffff',
-    shadow: '#CF7500',
-    font: 'Vector',
-    size: 10,
-    middle: screen.height - 15, // at bottom of screen
-  },
-  circle: {
-    colormin: '#00a8ff',
-    colorsec: '#339900',
-    width: 10,
-    middle: screen.middle,
-    center: screen.center,
-    height: screen.height,
+  colors: {
+    ticks: '#ff9500',
+    degrees: '#00aaff',
+    highlight: '#eeeeee',
   },
 }
 
-const getTime = function (date) {
-  var keys = ['degrees', 'ticks']
-
+const get360Time = function (date) {
   // Work with a copy so as not to mutate the orignal date object
   var d = new Date(date.valueOf())
 
+  // Divide conventional time into 360 degrees of 240 seconds each and
+  // reduce the value to an object with properties "degrees" and "ticks"
   return ((d.getTime() - d.setHours(0, 0, 0, 0)) / 240000)
-    .toFixed(2)
-    .split('.')
+    .toFixed(2) // Ignore milliticks
+    .split('.') // Get the two parts (degrees and ticks)
     .reduce((obj, value, i) => {
-      obj[keys[i]] = parseInt(value)
+      obj[['degrees', 'ticks'][i]] = parseInt(value)
       return obj
     }, {})
 }
@@ -64,98 +54,72 @@ const getArcXY = function (centerX, centerY, radius, angle) {
 }
 
 const drawDegree = function (sections) {
-  g.setColor((sections / 90) % 1 ? settings.circle.colormin : '#ffffff')
-  rad = settings.circle.height / 2 - 20
-  r1 = getArcXY(
-    settings.circle.middle,
-    settings.circle.center,
-    rad,
-    sections - 90
-  )
-  //g.setPixel(r[0],r[1]);
-  r2 = getArcXY(
-    settings.circle.middle,
-    settings.circle.center,
-    rad - settings.circle.width,
-    sections - 90
-  )
-  //g.setPixel(r[0],r[1]);
-  g.drawLine(r1[0], r1[1], r2[0], r2[1])
+  rad = screen.height / 2 - 20
+  r1 = getArcXY(screen.middle, screen.center, rad, sections - 90)
+  r2 = getArcXY(screen.middle, screen.center, rad - 10, sections - 90)
+  //g.setPixel(r1[0],r1[1])
+  g.setColor(
+    (sections / 90) % 1 ? settings.colors.degrees : settings.colors.highlight
+  ).drawRect(r1[0], r1[1], r2[0], r2[1])
 }
 
 const drawTick = function (sections) {
-  g.setColor((sections / 25) % 1 ? settings.circle.colorsec : '#ffffff')
-  rad = settings.circle.height / 2 - 37
-  r1 = getArcXY(
-    settings.circle.middle,
-    settings.circle.center,
-    rad,
-    sections * (360 / 100) - 90
-  )
-  //g.setPixel(r[0],r[1]);
+  rad = screen.height / 2 - 37
+  r1 = getArcXY(screen.middle, screen.center, rad, sections * (360 / 100) - 90)
   r2 = getArcXY(
-    settings.circle.middle,
-    settings.circle.center,
-    rad - settings.circle.width,
+    screen.middle,
+    screen.center,
+    rad - 10,
     sections * (360 / 100) - 90
   )
-  //g.setPixel(r[0],r[1]);
-  g.drawLine(r1[0], r1[1], r2[0], r2[1])
+  g.setColor(
+    (sections / 25) % 1 ? settings.colors.ticks : settings.colors.highlight
+  ).drawLine(r1[0], r1[1], r2[0], r2[1])
 }
 
 const drawOutlines = function () {
   g.setColor('#333333')
-  g.drawCircle(
-    settings.circle.middle,
-    settings.circle.center,
-    settings.circle.height / 2 - 37 - settings.circle.width - 4
-  )
-  g.drawCircle(
-    settings.circle.middle,
-    settings.circle.center,
-    settings.circle.height / 2 - 20 - settings.circle.width - 4
-  )
+    .drawCircle(screen.middle, screen.center, screen.height / 2 - 37 - 10 - 4)
+    .drawCircle(screen.middle, screen.center, screen.height / 2 - 20 - 10 - 4)
 }
 
 const writeDegree = function (degrees) {
   g.setColor('#000000')
-  g.fillRect(75, 80, 165, 122)
-  g.setFont(settings.time.font, settings.time.size)
-  g.setColor(settings.circle.colormin)
-  g.drawString(degrees, settings.time.center, settings.time.middle)
+    .fillRect(73, 83, 168, 126)
+    .setColor(settings.colors.degrees)
+    .setFont('Vector', 45)
+    .drawString(
+      String('00' + degrees).slice(-3),
+      screen.center - 48,
+      screen.middle - 40
+    )
 }
 
 const writeTick = function (ticks) {
   g.setColor('#000000')
-  g.fillRect(
-    settings.time.center + 10,
-    settings.time.middle + 45,
-    settings.time.center + 75,
-    settings.time.middle + 90
-  )
-  g.setFont(settings.time.font, 30)
-  g.setColor(settings.circle.colorsec)
-  g.drawString(
-    String('0' + ticks).slice(-2),
-    settings.time.center + 22,
-    settings.time.middle + 50
-  )
+    .fillRect(97, 137, 140, 166)
+    .setColor(settings.colors.ticks)
+    .setFont('Vector', 30)
+    .drawString(
+      String('0' + ticks).slice(-2),
+      screen.center - 23,
+      screen.middle + 15
+    )
 }
 
 const drawClock = function () {
   var now = new Date()
-  var time = getTime(now)
+  var time = get360Time(now)
 
   if (time.ticks != ticks) {
-    // Empty the circles when ticks pass zero
+    // If it's a new degree, reset ticks count and circles
     if (ticks > time.ticks) {
       ticks = -1
 
-      g.setColor('#000000')
-      g.fillCircle(
-        settings.circle.middle,
-        settings.circle.center,
-        settings.circle.height / 2 - (time.degrees === 0 ? 20 : 35)
+      g.setColor('#000000').fillCircle(
+        screen.middle,
+        screen.center,
+        screen.height / 2 - (time.degrees === 0 ? 20 : 35)
       )
 
       drawOutlines()
@@ -163,7 +127,11 @@ const drawClock = function () {
 
     // Add new degree(s)
     if (time.degrees != degrees) {
-      if (degrees > time.degrees) degrees = -1
+      // If it's a new day, reset degrees count and update midnight mark
+      if (degrees > time.degrees) {
+        degrees = -1
+        midnight = new Date().setHours(0, 0, 0, 0)
+      }
 
       for (i = degrees + 1; i <= time.degrees; i++) {
         drawDegree(i)
@@ -175,12 +143,16 @@ const drawClock = function () {
       drawTick(i)
     }
 
+    // Update counts
     degrees = time.degrees
     ticks = time.ticks
 
     writeDegree(degrees)
     writeTick(ticks)
   }
+
+  // Run again on next tick
+  setTimeout(drawClock, compensatedTimeout(now))
 }
 
 Bangle.on('lcdPower', function (on) {
@@ -188,12 +160,9 @@ Bangle.on('lcdPower', function (on) {
 })
 
 // Clean app screen
-g.clear()
-g.setFontAlign(0, 0, 0)
+g.clear().setFontAlign(0, 0, 0)
 Bangle.loadWidgets()
 Bangle.drawWidgets()
-
-setInterval(drawClock, 2400)
 
 // Draw clock now
 drawOutlines()
