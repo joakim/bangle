@@ -1555,7 +1555,7 @@
     "name": "360 Clock",
     "shortName" : "360 Clock",
     "icon": "clock360.png",
-    "version":"0.19",
+    "version":"0.20",
     "description": "The time in 360 degrees.",
     "type": "clock",
     "tags": "clock",
