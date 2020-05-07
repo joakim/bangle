@@ -1,3 +1,4 @@
+// Show launcher when middle button pressed
 setWatch(Bangle.showLauncher, BTN2, { repeat: false, edge: 'falling' })
 
 const locale = require('locale')
@@ -6,6 +7,7 @@ let midnight = 0
 let degrees = -1
 let ticks = -1
 let minutes = -1
+let timer
 
 let screen = {
   width: g.getWidth(),
@@ -172,7 +174,7 @@ let drawClock = function () {
   }
 
   // Run again on next tick
-  setTimeout(drawClock, compensatedTimeout(now))
+  timer = setTimeout(drawClock, compensatedTimeout(now))
 }
 
 // Compensates for accumulated error due to inaccurate timer
@@ -206,15 +208,23 @@ let newDay = function () {
 }
 
 Bangle.on('lcdPower', function (on) {
-  if (on) drawClock()
+  if (on) {
+    newDay()
+    drawOutlines()
+    drawClock()
+    Bangle.drawWidgets()
+  }
+  else {
+    if (timer) {
+      clearTimeout(timer)
+    }
+  }
 })
 
-// Clean app screen
 g.clear()
-Bangle.loadWidgets()
-Bangle.drawWidgets()
-
-// Draw clock now
 newDay()
 drawOutlines()
 drawClock()
+
+Bangle.loadWidgets()
+Bangle.drawWidgets()
