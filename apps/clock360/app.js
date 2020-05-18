@@ -1,36 +1,42 @@
-// Show launcher when middle button pressed
-setWatch(Bangle.showLauncher, BTN2, { repeat: false, edge: 'falling' })
-
 const locale = require('locale')
+const settings = require('Storage').readJSON('clock360.json', 1) || {
+  sunTime: true,
+  menuButton: 22,
+}
 
-let midnight = 0
-let degrees = -1
-let ticks = -1
-let minutes = -1
-let timer
+setWatch(Bangle.showLauncher, settings.menuButton, {
+  repeat: false,
+  edge: 'falling',
+})
 
-let screen = {
+const screen = {
   width: g.getWidth(),
   height: g.getWidth(),
   middle: g.getWidth() / 2,
   center: g.getHeight() / 2,
 }
 
-let settings = {
-  colors: {
-    ticks: '#ff9500',
-    degrees: '#00aaff',
-    highlight: '#fafafa',
-  },
+const colors = {
+  ticks: '#ff9500',
+  degrees: '#00aaff',
+  highlight: '#fafafa',
 }
+
+let midnight = 0
+let degrees = -1
+let ticks = -1
+let minutes = -1
+let sunTime = settings.sunTime || true
+let timer
 
 let get360Time = function (date) {
   // Work with a copy so as not to mutate the orignal date object
   let d = new Date(date.valueOf())
 
-  // Divide conventional time into 360 degrees of 240 seconds each and
-  // reduce the value to an object with properties "degrees" and "ticks"
-  return ((d.getTime() - d.setHours(0, 0, 0, 0)) / 240000)
+  // Divide conventional time into 360 degrees of 240 seconds each, offset
+  // by 6 hours if the day starts around sunrise, then reduce the resulting
+  // value to an object with properties "degrees" and "ticks"
+  return ((d.getTime() - d.setHours(sunTime ? 6 : 0, 0, 0, 0)) / 240000)
     .toFixed(2) // Ignore milliticks
     .split('.') // Get the two parts (degrees and ticks)
     .reduce((obj, value, i) => {
@@ -49,27 +55,39 @@ let getArcXY = function (centerX, centerY, radius, angle) {
 }
 
 let drawDegree = function (sections) {
+  let offset = sunTime ? 180 : 90
   rad = screen.height / 2 - 20
-  r1 = getArcXY(screen.middle, screen.center, rad, sections - 90)
-  r2 = getArcXY(screen.middle, screen.center, rad - 10, sections - 90)
-  //g.setPixel(r1[0],r1[1])
-  g.setColor(
-    (sections / 90) % 1 ? settings.colors.degrees : settings.colors.highlight
-  ).drawLine(r1[0], r1[1], r2[0], r2[1])
+  r1 = getArcXY(screen.middle, screen.center, rad, sections - offset)
+  r2 = getArcXY(screen.middle, screen.center, rad - 10, sections - offset)
+  g.setColor((sections / 90) % 1 ? colors.degrees : colors.highlight).drawLine(
+    r1[0],
+    r1[1],
+    r2[0],
+    r2[1]
+  )
 }
 
 let drawTick = function (sections) {
+  let offset = sunTime ? 180 : 90
   rad = screen.height / 2 - 37
-  r1 = getArcXY(screen.middle, screen.center, rad, sections * (360 / 100) - 90)
+  r1 = getArcXY(
+    screen.middle,
+    screen.center,
+    rad,
+    sections * (360 / 100) - offset
+  )
   r2 = getArcXY(
     screen.middle,
     screen.center,
     rad - 10,
-    sections * (360 / 100) - 90
+    sections * (360 / 100) - offset
   )
-  g.setColor(
-    (sections / 25) % 1 ? settings.colors.ticks : settings.colors.highlight
-  ).drawLine(r1[0], r1[1], r2[0], r2[1])
+  g.setColor((sections / 25) % 1 ? colors.ticks : colors.highlight).drawLine(
+    r1[0],
+    r1[1],
+    r2[0],
+    r2[1]
+  )
 }
 
 let drawOutlines = function () {
@@ -81,7 +99,7 @@ let drawOutlines = function () {
 let writeDegree = function (degrees) {
   g.setColor('#000000')
     .fillRect(73, 80, 168, 125)
-    .setColor(settings.colors.degrees)
+    .setColor(colors.degrees)
     .setFont('Vector', 45)
     .setFontAlign(0, 0)
     .drawString(
@@ -94,7 +112,7 @@ let writeDegree = function (degrees) {
 let writeTick = function (ticks) {
   g.setColor('#000000')
     .fillRect(99, 135, 142, 167)
-    .setColor(settings.colors.ticks)
+    .setColor(colors.ticks)
     .setFont('Vector', 30)
     .setFontAlign(0, 0)
     .drawString(
@@ -163,7 +181,7 @@ let drawClock = function () {
           screen.height
         )
         .setColor('#cccccc')
-        .setFont('Vector', 10)
+        .setFont('Vector', 12)
         .setFontAlign(1, -1)
         .drawString(
           locale.time(localtime, 1),
@@ -195,7 +213,7 @@ let newDay = function () {
   g.setColor('#000000')
     .fillRect(15, screen.height - 14, screen.width - 50, screen.height)
     .setColor('#cccccc')
-    .setFont('Vector', 10)
+    .setFont('Vector', 12)
     .setFontAlign(-1, -1)
     .drawString(locale.dow(now), 15, screen.height - 13)
     .setFontAlign(0, -1)
@@ -207,24 +225,14 @@ let newDay = function () {
     )
 }
 
-Bangle.on('lcdPower', function (on) {
-  if (on) {
-    newDay()
-    drawOutlines()
-    drawClock()
-    Bangle.drawWidgets()
-  }
-  else {
-    if (timer) {
-      clearTimeout(timer)
-    }
-  }
-})
+Bangle.on('lcdPower', (on) => on && drawClock())
 
+// Clean app screen
 g.clear()
+Bangle.loadWidgets()
+Bangle.drawWidgets()
+
+// Draw clock now
 newDay()
 drawOutlines()
 drawClock()
-
-Bangle.loadWidgets()
-Bangle.drawWidgets()
