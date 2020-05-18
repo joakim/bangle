@@ -26,8 +26,6 @@ let midnight = 0
 let degrees = -1
 let ticks = -1
 let minutes = -1
-let sunTime = settings.sunTime || true
-let timer
 
 let get360Time = function (date) {
   // Work with a copy so as not to mutate the orignal date object
@@ -36,7 +34,10 @@ let get360Time = function (date) {
   // Divide conventional time into 360 degrees of 240 seconds each, offset
   // by 6 hours if the day starts around sunrise, then reduce the resulting
   // value to an object with properties "degrees" and "ticks"
-  return ((d.getTime() - d.setHours(sunTime ? 6 : 0, 0, 0, 0)) / 240000)
+  return (
+    (d.getTime() - d.setHours(settings.sunTime ? 6 : 0, 0, 0, 0)) /
+    240000
+  )
     .toFixed(2) // Ignore milliticks
     .split('.') // Get the two parts (degrees and ticks)
     .reduce((obj, value, i) => {
@@ -55,7 +56,7 @@ let getArcXY = function (centerX, centerY, radius, angle) {
 }
 
 let drawDegree = function (sections) {
-  let offset = sunTime ? 180 : 90
+  let offset = settings.sunTime ? 180 : 90
   rad = screen.height / 2 - 20
   r1 = getArcXY(screen.middle, screen.center, rad, sections - offset)
   r2 = getArcXY(screen.middle, screen.center, rad - 10, sections - offset)
@@ -68,7 +69,7 @@ let drawDegree = function (sections) {
 }
 
 let drawTick = function (sections) {
-  let offset = sunTime ? 180 : 90
+  let offset = settings.sunTime ? 180 : 90
   rad = screen.height / 2 - 37
   r1 = getArcXY(
     screen.middle,
