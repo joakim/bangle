@@ -22,6 +22,7 @@ const colors = {
   highlight: '#fafafa',
 }
 
+let timer
 let midnight = 0
 let degrees = -1
 let ticks = -1
@@ -208,7 +209,7 @@ let newDay = function () {
   let now = new Date()
 
   // Update day variables
-  midnight = now.setHours(0, 0, 0, 0)
+  midnight = now.setHours(settings.sunTime ? 6 : 0, 0, 0, 0)
 
   // Update calendar day fields
   g.setColor('#000000')
@@ -226,7 +227,7 @@ let newDay = function () {
     )
 }
 
-Bangle.on('lcdPower', (on) => on && drawClock())
+Bangle.on('lcdPower', (on) => (on ? drawClock() : clearTimeout(timer)))
 
 // Clean app screen
 g.clear()
