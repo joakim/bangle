@@ -34,7 +34,7 @@
 
   let menu = {
     '': { title: '360 Clock' },
-    'Offset': {
+    Offset: {
       value: 1 | offsets[settings.offset],
       min: 0,
       max: 4,
@@ -43,6 +43,7 @@
         settings.offset = offsets[v][0]
         updateSettings()
       },
+    },
     '24 hours': {
       value: settings.hours,
       format: boolFormat,
