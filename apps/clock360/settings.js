@@ -5,7 +5,8 @@
 
   function resetSettings() {
     settings = {
-      sunTime: true,
+      offset: -90,
+      hours: false,
       menuButton: 22,
     }
     updateSettings()
@@ -13,6 +14,13 @@
 
   let settings = storage.readJSON('clock360.json', 1)
   if (!settings) resetSettings()
+
+  let offsets = [
+    [270, 'S'],
+    [180, 'W'],
+    [90, 'N'],
+    [0, 'E'],
+  ]
 
   let buttons = [
     [24, 'BTN1'],
@@ -26,11 +34,20 @@
 
   let menu = {
     '': { title: '360 Clock' },
-    'Sun time': {
-      value: settings.sunTime,
+    'Offset': {
+      value: 1 | offsets[settings.offset],
+      min: 0,
+      max: 4,
+      format: (v) => offsets[v][1],
+      onchange: (v) => {
+        settings.offset = offsets[v][0]
+        updateSettings()
+      },
+    '24 hours': {
+      value: settings.hours,
       format: boolFormat,
       onchange: () => {
-        settings.sunTime = !settings.sunTime
+        settings.hours = !settings.hours
         updateSettings()
       },
     },
