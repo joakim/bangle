@@ -1,7 +1,8 @@
 const locale = require('locale')
 const settings = require('Storage').readJSON('clock360.json', 1) || {
-  offset: -90,
-  hours: false,
+  timezone: 0,
+  hours: 24,
+  offset: 270,
   menuButton: 22,
 }
 
@@ -18,6 +19,8 @@ const screen = {
 }
 
 const colors = {
+  outline: '#111111',
+  markers: '#222222',
   ticks: '#ff9500',
   degrees: '#00aaff',
   highlight: '#fafafa',
@@ -28,35 +31,8 @@ let midnight = 0
 let degrees = -1
 let ticks = -1
 
-// Compensates for accumulated error due to inaccurate timer
-let compensatedTimeout = function (now) {
-  let counted = (degrees * 100 + ticks) * 2400
-  let offset = now - midnight - counted
-  let result = 2400 - Math.max(offset, 0)
-  return result
-}
-
-let get360Time = function (date) {
-  // Work with a copy so as not to mutate the orignal date object
-  let d = new Date(date.valueOf())
-
-  // Divide conventional time into 360 degrees of 240 seconds each,
-  // then reduce the resulting value to an object with properties "degrees" and "ticks"
-  let time = ((d.getTime() - d.setHours(0, 0, 0, 0)) / 240000)
-    .toFixed(2) // Ignore milliticks
-    .split('.') // Get the two parts (degrees and ticks)
-    .reduce((obj, value, i) => {
-      obj[['degrees', 'ticks'][i]] = parseInt(value)
-      return obj
-    }, {})
-
-  if (settings.hours) {
-    let hour = time.degrees / 15
-    time.hour = Math.floor(hour)
-    time.fifteenth = Math.floor((hour - time.hour) * 15)
-  }
-
-  return time
+let zeroPad = function (str, len) {
+  return String('0'.repeat(len - 1) + str).slice(-len)
 }
 
 let getArcXY = function (centerX, centerY, radius, angle) {
@@ -68,166 +44,206 @@ let getArcXY = function (centerX, centerY, radius, angle) {
   return r
 }
 
-let drawDegree = function (sections) {
+let drawDegree = function (degree, color) {
   rad = screen.height / 2 - 20
-  r1 = getArcXY(screen.middle, screen.center, rad, sections - settings.offset)
+  r1 = getArcXY(screen.middle, screen.center, rad, degree - settings.offset)
   r2 = getArcXY(
     screen.middle,
     screen.center,
     rad - 10,
-    sections - settings.offset
+    degree - settings.offset
   )
-  g.setColor((sections / 90) % 1 ? colors.degrees : colors.highlight).drawLine(
-    r1[0],
-    r1[1],
-    r2[0],
-    r2[1]
-  )
+  g.setColor(color).drawLine(r1[0], r1[1], r2[0], r2[1])
 }
 
-let drawTick = function (sections) {
+let drawTick = function (tick, color) {
   rad = screen.height / 2 - 37
   r1 = getArcXY(
     screen.middle,
     screen.center,
     rad,
-    sections * (360 / 100) - settings.offset
+    tick * (360 / 100) - settings.offset
   )
   r2 = getArcXY(
     screen.middle,
     screen.center,
     rad - 10,
-    sections * (360 / 100) - settings.offset
+    tick * (360 / 100) - settings.offset
   )
-  g.setColor((sections / 25) % 1 ? colors.ticks : colors.highlight).drawLine(
-    r1[0],
-    r1[1],
-    r2[0],
-    r2[1]
-  )
+  g.setColor(color).drawLine(r1[0], r1[1], r2[0], r2[1])
 }
 
 let resetArea = function (area) {
+  // Circular areas from the center outwards (in subtractions)
+  // 50 = inner circle
   // 35 = ticks
-  // 18 = degrees + ticks
+  // 18 = degrees
+  let areas = new Array(55, 35, 18)
+
+  // Empty the area
   g.setColor('#000000')
-    .fillCircle(screen.middle, screen.center, screen.height / 2 - area)
-    .setColor('#333333')
-    .drawCircle(screen.middle, screen.center, screen.height / 2 - 37 - 10 - 4)
-    .drawCircle(screen.middle, screen.center, screen.height / 2 - 20 - 10 - 4)
+    .fillCircle(screen.middle, screen.center, screen.height / 2 - areas[area])
+
+  // Reset ticks band
+  if (area > 0) {
+    g.setColor(colors.outline).drawCircle(
+      screen.middle,
+      screen.center,
+      screen.height / 2 - areas[1] - 2 - 10 - 4
+    )
+
+    // Draw tick markers
+    drawTick(0, colors.markers)
+    drawTick(25, colors.markers)
+    drawTick(50, colors.markers)
+    drawTick(75, colors.markers)
+  }
+
+  // Reset degrees band
+  if (area > 1) {
+    g.setColor(colors.outline).drawCircle(
+      screen.middle,
+      screen.center,
+      screen.height / 2 - areas[2] - 2 - 10 - 4
+    ).drawCircle(screen.middle, screen.center, screen.height / 2 - areas[2] + 2)
+
+    // Draw hour markers
+    if (settings.hours) {
+      let degrees = 360 / settings.hours
+      for (let i = 0; i < 360; i += degrees) {
+        drawDegree(i, colors.markers)
+      }
+    }
+  }
 }
 
 let newDay = function () {
-  // Update day variables
+  // Update midnight timestamp, adjusting for DST if necessary
   midnight = new Date()
-  midnight.setHours(0, 0, 0, 0)
-
-  // Update calendar day fields
-  g.setColor('#000000')
-    .fillRect(15, screen.height - 14, screen.width - 50, screen.height)
-    .setColor('#cccccc')
-    .setFont('Vector', 12)
-    .setFontAlign(-1, -1)
-    .drawString(locale.dow(midnight), 15, screen.height - 13)
-    .setFontAlign(0, -1)
-    // Remove weekday and fix locale bug where it only supports %d (0-padded)
-    .drawString(
-      locale.date(midnight, 1),
-      //locale.date(midnight).replace(/\w+ /, '').replace(/^0/, ''),
-      screen.middle,
-      screen.height - 13
-    )
+  midnight.setHours(0, 0, settings.timezone * 240, 0)
 }
 
-let newMinute = function () {
-  // Hack: Adjust for DST (as long as it lasts)
-  let now = new Date()
-  now.setHours(now.getHours() + 1)
+let get360Time = function (date) {
+  // Divide conventional time into 360 degrees of 240 seconds each, then reduce
+  // the resulting value to an object with properties "degrees" and "ticks"
+  let time = ((date.getTime() - midnight) / 240000)
+    .toFixed(2) // Ignore milliticks
+    .split('.') // Get the two parts (degrees and ticks)
+    .reduce((obj, value, i) => {
+      obj[['degrees', 'ticks'][i]] = parseInt(value)
+      return obj
+    }, {})
 
-  g.setColor('#000000')
-    .fillRect(
-      screen.width - 50,
-      screen.height - 14,
-      screen.width,
-      screen.height
-    )
-    .setColor('#cccccc')
-    .setFont('Vector', 12)
-    .setFontAlign(1, -1)
-    .drawString(locale.time(now, 1), screen.width - 15, screen.height - 13)
-}
+  // Calculate hours
+  if (settings.hours) {
+    let length = 360 / settings.hours
+    let hour = time.degrees / length
+    time.hour = Math.floor(hour)
+    time.minute = (hour - time.hour) * length
+  }
 
-let zeroPad = function (str, len) {
-  return String('0'.repeat(len - 1) + str).slice(-len)
+  return time
 }
 
 let drawClock = function () {
   let now = new Date()
+
   let time = get360Time(now)
 
-  // Reset ticks + degrees when it's a new day, ticks only when it's a new degree
+  // Reset ticks + degrees when it's a new day, ticks when it's a new degree
   if (time.degrees < degrees) {
     degrees = -1
-    resetArea(18)
+    ticks = -1
+    resetArea(2)
     newDay()
   } else if (time.degrees > degrees || time.ticks < ticks) {
     ticks = -1
-    resetArea(35)
+    resetArea(1)
   }
 
-  // Draw new degree(s)
+  // Update degrees number
   if (time.degrees > degrees) {
-    let text = settings.hours
-      ? `${zeroPad(time.hour, 2)}/${zeroPad(time.fifteenth, 2)}`
-      : zeroPad(time.degrees, 3)
-
     g.setColor('#000000')
       .fillRect(73, 80, 168, 125)
       .setColor(colors.degrees)
-      .setFont('Vector', settings.hours ? 35 : 45)
+      .setFont('Vector', 45)
       .setFontAlign(0, 0)
-      .drawString(text, screen.center, screen.middle - 20)
+      .drawString(
+        settings.hours ? time.hour : zeroPad(time.degrees, 3),
+        screen.center,
+        screen.middle - 20
+      )
+  }
 
+  // Update ticks number
+  if (time.ticks > ticks) {
+    g.setColor('#000000')
+      .fillRect(71, 135, 170, 165)
+      .setColor(colors.ticks)
+      .setFont('Vector', 25)
+      .setFontAlign(0, 0)
+      .drawString(
+        (settings.hours ? `${zeroPad(time.minute, 2)}.` : '') +
+          zeroPad(time.ticks, 2),
+        screen.center,
+        screen.middle + 30
+      )
+  }
+
+  // Render new degree(s)
+  if (time.degrees > degrees) {
     for (i = degrees + 1; i <= time.degrees; i++) {
-      drawDegree(i)
+      drawDegree(
+        i,
+        i % (360 / (settings.hours ? settings.hours : 4))
+          ? colors.degrees
+          : colors.highlight
+      )
     }
 
     degrees = time.degrees
   }
 
-  // Draw new tick(s)
+  // Render new tick(s)
   if (time.ticks > ticks) {
     for (i = ticks + 1; i <= time.ticks; i++) {
-      drawTick(i)
+      drawTick(i, (i / 25) % 1 ? colors.ticks : colors.highlight)
     }
 
     ticks = time.ticks
-
-    g.setColor('#000000')
-      .fillRect(99, 135, 142, 167)
-      .setColor(colors.ticks)
-      .setFont('Vector', 30)
-      .setFontAlign(0, 0)
-      .drawString(zeroPad(ticks, 2), screen.center, screen.middle + 30)
-
-    // Update 24 hour clock every minute (25 ticks)
-    if (ticks % 25 === 0) {
-      newMinute()
-    }
   }
-
-  // Run again on next tick
-  timer = setTimeout(drawClock, compensatedTimeout(now))
 }
 
-Bangle.on('lcdPower', (on) => (on ? drawClock() : clearTimeout(timer)))
+let startClock = function () {
+  newDay()
+
+  // Calibrate timer by calculating milliseconds until next tick
+  let now = new Date()
+  let degree = (now.getTime() - midnight) / 240000
+  let tick = (degree - Math.floor(degree)) * 100
+  let nextTick = (tick - Math.floor(tick)) * 2400
+
+  // Start interval timer at the next tick
+  setTimeout(() => {
+    timer = setInterval(drawClock, 2400)
+    drawClock()
+  }, Math.max(0, 2400 - nextTick))
+
+  // Draw clock immediately
+  drawClock()
+}
+
+let stopClock = function () {
+  clearInterval(timer)
+}
+
+Bangle.on('lcdPower', (on) => (on ? startClock() : stopClock()))
 
 // Clean app screen
 g.clear()
+resetArea(2)
 Bangle.loadWidgets()
 Bangle.drawWidgets()
 
 // Draw clock
-newDay()
-newMinute()
-drawClock()
+startClock()
