@@ -5,8 +5,9 @@
 
   function resetSettings() {
     settings = {
-      offset: -90,
-      hours: false,
+      timezone: 0,
+      hours: 0,
+      offset: 270,
       menuButton: 22,
     }
     updateSettings()
@@ -15,12 +16,13 @@
   let settings = storage.readJSON('clock360.json', 1)
   if (!settings) resetSettings()
 
-  let offsets = [
-    [270, 'S'],
-    [180, 'W'],
-    [90, 'N'],
-    [0, 'E'],
-  ]
+  let hours = [0, 4, 6, 8, 10, 12, 24]
+
+  let offsets = []
+  offsets[0] = 'E'
+  offsets[90] = 'N'
+  offsets[180] = 'W'
+  offsets[270] = 'S'
 
   let buttons = [
     [24, 'BTN1'],
@@ -34,25 +36,36 @@
 
   let menu = {
     '': { title: '360 Clock' },
-    Offset: {
-      value: 1 | offsets[settings.offset],
+    'Time Zone': {
+      value: settings.timezone,
       min: 0,
-      max: 4,
-      format: (v) => offsets[v][1],
+      max: 359,
+      step: 1,
       onchange: (v) => {
-        settings.offset = offsets[v][0]
+        settings.timezone = v || 0
         updateSettings()
       },
     },
-    '24 hours': {
+    'Hours Per Day': {
       value: settings.hours,
-      format: boolFormat,
-      onchange: () => {
-        settings.hours = !settings.hours
+      format: (v) => hours[v] || 0,
+      onchange: (v) => {
+        settings.hours = hours[v]
         updateSettings()
       },
     },
-    'Menu button': {
+    'Starting Point': {
+      value: settings.offset,
+      min: 0,
+      max: 270,
+      step: 90,
+      format: (v) => offsets[v],
+      onchange: (v) => {
+        settings.offset = v || 0
+        updateSettings()
+      },
+    },
+    'Menu Button': {
       value: 1 | buttons[settings.menuButton],
       min: 0,
       max: 4,
