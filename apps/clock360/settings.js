@@ -16,11 +16,7 @@
   let settings = storage.readJSON('clock360.json', 1)
   if (!settings) resetSettings()
 
-  let offsets = []
-  offsets[0] = 'E'
-  offsets[90] = 'N'
-  offsets[180] = 'W'
-  offsets[270] = 'S'
+  let offsets = ['E', 'N', 'W', 'S']
 
   let buttons = [
     [24, 'BTN1'],
@@ -36,10 +32,10 @@
       '< Back': back,
       'Time Zone': {
         value: 0 | settings.timezone,
-        min: 0,
-        max: 359,
+        min: -180,
+        max: 180,
         step: 1,
-        format: (v) => `${v}°`,
+        format: (v) => (v > 0 ? '+' : '-') + `${v}°`,
         onchange: (v) => {
           settings.timezone = v || 0
           updateSettings()
@@ -64,7 +60,7 @@
         min: 0,
         max: 270,
         step: 90,
-        format: (v) => offsets[v],
+        format: (v) => offsets[v / 90],
         onchange: (v) => {
           settings.offset = v || 0
           updateSettings()
