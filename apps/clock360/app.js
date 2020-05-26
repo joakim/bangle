@@ -1,13 +1,13 @@
 const storage = require('Storage')
 
 const settings = storage.readJSON('clock360.json', 1) || {
-  timezone: 0,
+  timezone: 10,
   hours: 0,
   offset: 270,
   menuButton: 22,
 }
 
-const timezone = (storage.readJSON('setting.json', 1) || {}).timezone || 0
+const timezone = (storage.readJSON('setting.json', 1) || {}).timezone || 2
 
 setWatch(Bangle.showLauncher, settings.menuButton, {
   repeat: false,
@@ -129,20 +129,25 @@ let resetArea = function (area) {
 }
 
 let newDay = function () {
-  // Update the timestamp for midnight, first converting to UTC (in minutes)
-  // before applying the current 360 timezone (in seconds)
-  midnight = new Date().setHours(
-    0,
-    -(timezone * 60),
-    settings.timezone * 240,
-    0
-  )
+  // Update timestamp for midnight, first undoing the 24-hour timezone (in
+  // minutes) before applying the current 360-degree timezone (in seconds)
+  // TODO: Use GPS to get the current longitude (degree)
+  midnight =
+    new Date().setHours(0, 0, 0, 0) -
+    timezone * 60 * 60 * 1000 + // Undo 24-hour timezone
+    settings.timezone * 240 * 1000 // Apply 360-degree timezone
+
+  if (new Date() - midnight > 86400000) {
+    midnight += 86400000
+  }
 }
 
-let get360Time = function (date) {
-  // Divide conventional time into 360 degrees of 240 seconds each, then reduce
+let get360Time = function (now) {
+  let timestamp = now.getTime()
+
+  // Divide 24-hour time into 360 degrees of 240 seconds each, then reduce
   // the resulting value to an object with properties "degrees" and "ticks"
-  let time = ((date.getTime() - midnight) / 240000)
+  let time = ((timestamp - midnight) / 240000)
     .toFixed(2) // Ignore milliticks
     .split('.') // Get the two parts (degrees and ticks)
     .reduce((obj, value, i) => {
