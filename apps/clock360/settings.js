@@ -32,51 +32,63 @@
     [16, 'BTN5'],
   ]
 
-  let boolFormat = (v) => (v ? 'On' : 'Off')
+  let showSettingsMenu = function () {
+    let menu = {
+      '': { title: '360 Clock' },
+      '< Back': back,
+      'Time Zone': {
+        value: 0 | settings.timezone,
+        min: 0,
+        max: 359,
+        step: 1,
+        onchange: (v) => {
+          settings.timezone = v || 0
+          updateSettings()
+        },
+      },
+      'Hours Per Day': {
+        min: 0,
+        max: 6,
+        value: 0 | settings.hours,
+        //format: (v) => (v % 5 ? 4 + (v - 1) * 2 : v ? 24 : 0), // Good luck understanding that
+        format: (v) => hours[v],
+        onchange: (v) => {
+          settings.hours = v || 0
+          updateSettings()
+        },
+      },
+      'Starting Point': {
+        value: 0 | settings.offset,
+        min: 0,
+        max: 270,
+        step: 90,
+        format: (v) => offsets[v],
+        onchange: (v) => {
+          settings.offset = v || 0
+          updateSettings()
+        },
+      },
+      'Menu Button': {
+        value: 1 | buttons[settings.menuButton],
+        min: 0,
+        max: 4,
+        format: (v) => buttons[v][1],
+        onchange: (v) => {
+          settings.menuButton = buttons[v][0]
+          updateSettings()
+        },
+      },
+      'Reset Settings': () => {
+        E.showPrompt('Reset Settings?').then((v) => {
+          if (v) {
+            E.showMessage('Resetting')
+            resetSettings()
+          }
+          setTimeout(showSettingsMenu, 50)
+        })
+      },
+    }
 
-  let menu = {
-    '': { title: '360 Clock' },
-    'Time Zone': {
-      value: settings.timezone,
-      min: 0,
-      max: 359,
-      step: 1,
-      onchange: (v) => {
-        settings.timezone = v || 0
-        updateSettings()
-      },
-    },
-    'Hours Per Day': {
-      value: settings.hours,
-      format: (v) => hours[v] || 0,
-      onchange: (v) => {
-        settings.hours = hours[v]
-        updateSettings()
-      },
-    },
-    'Starting Point': {
-      value: settings.offset,
-      min: 0,
-      max: 270,
-      step: 90,
-      format: (v) => offsets[v],
-      onchange: (v) => {
-        settings.offset = v || 0
-        updateSettings()
-      },
-    },
-    'Menu Button': {
-      value: 1 | buttons[settings.menuButton],
-      min: 0,
-      max: 4,
-      format: (v) => buttons[v][1],
-      onchange: (v) => {
-        settings.menuButton = buttons[v][0]
-        updateSettings()
-      },
-    },
-    '< back': back,
+    return E.showMenu(menu)
   }
-
-  E.showMenu(menu)
 })
