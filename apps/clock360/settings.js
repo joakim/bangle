@@ -16,8 +16,6 @@
   let settings = storage.readJSON('clock360.json', 1)
   if (!settings) resetSettings()
 
-  let hours = [0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 15, 18, 20, 24, 30, 36]
-
   let offsets = []
   offsets[0] = 'E'
   offsets[90] = 'N'
@@ -49,11 +47,14 @@
       },
       'Hours Per Day': {
         min: 0,
-        max: 16,
+        max: 24,
         value: 0 | settings.hours,
-        //format: (v) => (v % 5 ? 4 + (v - 1) * 2 : v ? 24 : 0), // Good luck understanding that
-        format: (v) => hours[v],
         onchange: (v) => {
+          // Skip divisons leaving a remainder
+          if ((360 / v) % 1) {
+            menu['Hours Per Day'].value = v += v > settings.hours ? 1 : -1
+          }
+
           settings.hours = v || 0
           updateSettings()
         },
@@ -92,4 +93,6 @@
 
     return E.showMenu(menu)
   }
+
+  showSettingsMenu()
 })
