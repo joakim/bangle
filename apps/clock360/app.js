@@ -1,10 +1,13 @@
-const locale = require('locale')
-const settings = require('Storage').readJSON('clock360.json', 1) || {
+const storage = require('Storage')
+
+const settings = storage.readJSON('clock360.json', 1) || {
   timezone: 0,
-  hours: 24,
+  hours: 0,
   offset: 270,
   menuButton: 22,
 }
+
+const timezone = (storage.readJSON('setting.json', 1) || {}).timezone || 0
 
 setWatch(Bangle.showLauncher, settings.menuButton, {
   repeat: false,
@@ -19,12 +22,17 @@ const screen = {
 }
 
 const colors = {
-  outline: '#111111',
-  markers: '#222222',
+  outline: '#333333',
   ticks: '#ff9500',
   degrees: '#00aaff',
   highlight: '#fafafa',
 }
+
+// Circular areas from the center outwards (in subtractions)
+// 40 = inner circle
+// 35 = ticks
+// 18 = degrees
+const areas = new Array(40, 35, 18)
 
 let timer
 let midnight = 0
@@ -73,54 +81,62 @@ let drawTick = function (tick, color) {
   g.setColor(color).drawLine(r1[0], r1[1], r2[0], r2[1])
 }
 
-let resetArea = function (area) {
-  // Circular areas from the center outwards (in subtractions)
-  // 50 = inner circle
-  // 35 = ticks
-  // 18 = degrees
-  let areas = new Array(55, 35, 18)
-
-  // Empty the area
-  g.setColor('#000000')
-    .fillCircle(screen.middle, screen.center, screen.height / 2 - areas[area])
+let drawOutlines = function (area) {
+  g.setColor(colors.outline)
 
   // Reset ticks band
   if (area > 0) {
-    g.setColor(colors.outline).drawCircle(
+    g.drawCircle(
       screen.middle,
       screen.center,
       screen.height / 2 - areas[1] - 2 - 10 - 4
     )
 
     // Draw tick markers
-    drawTick(0, colors.markers)
-    drawTick(25, colors.markers)
-    drawTick(50, colors.markers)
-    drawTick(75, colors.markers)
+    drawTick(0, colors.outline)
+    drawTick(25, colors.outline)
+    drawTick(50, colors.outline)
+    drawTick(75, colors.outline)
   }
 
   // Reset degrees band
   if (area > 1) {
-    g.setColor(colors.outline).drawCircle(
+    g.drawCircle(
       screen.middle,
       screen.center,
       screen.height / 2 - areas[2] - 2 - 10 - 4
-    ).drawCircle(screen.middle, screen.center, screen.height / 2 - areas[2] + 2)
+    )
+    g.drawCircle(screen.middle, screen.center, screen.height / 2 - areas[2] + 2)
 
     // Draw hour markers
     if (settings.hours) {
       let degrees = 360 / settings.hours
       for (let i = 0; i < 360; i += degrees) {
-        drawDegree(i, colors.markers)
+        drawDegree(i, colors.outline)
       }
     }
   }
 }
 
+let resetArea = function (area) {
+  g.setColor('#000000').fillCircle(
+    screen.middle,
+    screen.center,
+    screen.height / 2 - areas[area]
+  )
+
+  drawOutlines(area)
+}
+
 let newDay = function () {
-  // Update midnight timestamp, adjusting for DST if necessary
-  midnight = new Date()
-  midnight.setHours(0, 0, settings.timezone * 240, 0)
+  // Update the timestamp for midnight, first converting to UTC (in minutes)
+  // before applying the current 360 timezone (in seconds)
+  midnight = new Date().setHours(
+    0,
+    -(timezone * 60),
+    settings.timezone * 240,
+    0
+  )
 }
 
 let get360Time = function (date) {
@@ -152,13 +168,13 @@ let drawClock = function () {
 
   // Reset ticks + degrees when it's a new day, ticks when it's a new degree
   if (time.degrees < degrees) {
-    degrees = -1
-    ticks = -1
-    resetArea(2)
     newDay()
-  } else if (time.degrees > degrees || time.ticks < ticks) {
+    resetArea(2)
     ticks = -1
+    degrees = -1
+  } else if (degrees > -1 && (time.degrees > degrees || time.ticks < ticks)) {
     resetArea(1)
+    ticks = -1
   }
 
   // Update degrees number
@@ -195,9 +211,7 @@ let drawClock = function () {
     for (i = degrees + 1; i <= time.degrees; i++) {
       drawDegree(
         i,
-        i % (360 / (settings.hours ? settings.hours : 4))
-          ? colors.degrees
-          : colors.highlight
+        i % (360 / (settings.hours || 1)) ? colors.degrees : colors.highlight
       )
     }
 
@@ -226,7 +240,6 @@ let startClock = function () {
   // Start interval timer at the next tick
   setTimeout(() => {
     timer = setInterval(drawClock, 2400)
-    drawClock()
   }, Math.max(0, 2400 - nextTick))
 
   // Draw clock immediately
@@ -241,9 +254,9 @@ Bangle.on('lcdPower', (on) => (on ? startClock() : stopClock()))
 
 // Clean app screen
 g.clear()
-resetArea(2)
 Bangle.loadWidgets()
 Bangle.drawWidgets()
 
 // Draw clock
+drawOutlines(2)
 startClock()
