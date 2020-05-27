@@ -5,11 +5,12 @@
 
   function resetSettings() {
     settings = {
-      division: 0,
       timezone: 0,
+      division: 0,
+      origin: 270,
+      sun: false,
       lat: 0,
       lon: 0,
-      origin: 270,
       menuButton: 22,
     }
     updateSettings()
@@ -32,20 +33,6 @@
     let menu = {
       '': { title: '360 Clock' },
       '< Back': back,
-      Hours: {
-        min: 0,
-        max: 24,
-        value: 0 | settings.division,
-        onchange: (v) => {
-          // Skip divisions leaving a remainder
-          if ((360 / v) % 1) {
-            menu['Hours'].value = v += v > settings.division ? 1 : -1
-          }
-
-          settings.division = v || 0
-          updateSettings()
-        },
-      },
       'Time Zone': {
         value: 0 | settings.timezone,
         min: -180,
@@ -54,6 +41,49 @@
         format: (v) => (v > 0 ? '+' + v : v) + '°',
         onchange: (v) => {
           settings.timezone = v || 0
+          updateSettings()
+        },
+      },
+      Hours: {
+        min: 0,
+        max: 24,
+        value: 0 | settings.division,
+        onchange: (v) => {
+          // Skip divisions leaving a remainder
+          while ((360 / v) % 1) {
+            menu['Hours'].value = v = v + (v > settings.division ? 1 : -1)
+          }
+
+          settings.division = v || 0
+          updateSettings()
+        },
+      },
+      'Starting Point': {
+        value: 0 | settings.origin,
+        min: 0,
+        max: 270,
+        step: 90,
+        format: (v) => origins[v / 90],
+        onchange: (v) => {
+          settings.origin = v || 0
+          updateSettings()
+        },
+      },
+      'Sunrise/Sunset': {
+        value: settings.sun,
+        format: (v) => (v ? 'On' : 'Off'),
+        onchange: () => {
+          settings.sun = !settings.sun
+          updateSettings()
+        },
+      },
+      'Menu Button': {
+        value: 1 | buttons[settings.menuButton],
+        min: 0,
+        max: 4,
+        format: (v) => buttons[v][1],
+        onchange: (v) => {
+          settings.menuButton = buttons[v][0]
           updateSettings()
         },
       },
@@ -79,27 +109,6 @@
             setTimeout(showSettingsMenu, 50)
           }
         })
-      },
-      'Starting Point': {
-        value: 0 | settings.origin,
-        min: 0,
-        max: 270,
-        step: 90,
-        format: (v) => origins[v / 90],
-        onchange: (v) => {
-          settings.origin = v || 0
-          updateSettings()
-        },
-      },
-      'Menu Button': {
-        value: 1 | buttons[settings.menuButton],
-        min: 0,
-        max: 4,
-        format: (v) => buttons[v][1],
-        onchange: (v) => {
-          settings.menuButton = buttons[v][0]
-          updateSettings()
-        },
       },
       'Reset Settings': () => {
         E.showPrompt('Reset Settings?').then((v) => {
