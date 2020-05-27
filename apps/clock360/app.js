@@ -1,13 +1,18 @@
 const storage = require('Storage')
 
+const systemSettings = storage.readJSON('setting.json', 1) || {
+  timezone: 0,
+  log: 0,
+}
+
+//E.setTimeZone(systemSettings.timezone)
+
 const settings = storage.readJSON('clock360.json', 1) || {
-  timezone: 10,
+  timezone: 0,
   hours: 0,
   offset: 270,
   menuButton: 22,
 }
-
-const timezone = (storage.readJSON('setting.json', 1) || {}).timezone || 2
 
 setWatch(Bangle.showLauncher, settings.menuButton, {
   repeat: false,
@@ -36,6 +41,7 @@ const areas = new Array(40, 35, 18)
 
 let timer
 let midnight = 0
+let hours = -1
 let degrees = -1
 let ticks = -1
 
@@ -129,25 +135,27 @@ let resetArea = function (area) {
 }
 
 let newDay = function () {
-  // Update timestamp for midnight, first undoing the 24-hour timezone (in
-  // minutes) before applying the current 360-degree timezone (in seconds)
-  // TODO: Use GPS to get the current longitude (degree)
-  midnight =
-    new Date().setHours(0, 0, 0, 0) -
-    timezone * 60 * 60 * 1000 + // Undo 24-hour timezone
-    settings.timezone * 240 * 1000 // Apply 360-degree timezone
+  let now = new Date().getTime()
 
-  if (new Date() - midnight > 86400000) {
+  midnight = new Date(now).setHours(
+    0, // Midnight
+    systemSettings.timezone * 60, // Add 24-hour timezone (minutes)
+    settings.timezone * 240, // Add 360-degree timezone (seconds)
+    0
+  )
+
+  // Correct the date if it's off by one calendar day
+  if (now - midnight > 86400000) {
     midnight += 86400000
+  } else if (now - midnight < 0) {
+    midnight -= 86400000
   }
 }
 
 let get360Time = function (now) {
-  let timestamp = now.getTime()
-
   // Divide 24-hour time into 360 degrees of 240 seconds each, then reduce
   // the resulting value to an object with properties "degrees" and "ticks"
-  let time = ((timestamp - midnight) / 240000)
+  let time = ((now.getTime() - midnight) / 240000)
     .toFixed(2) // Ignore milliticks
     .split('.') // Get the two parts (degrees and ticks)
     .reduce((obj, value, i) => {
@@ -159,8 +167,8 @@ let get360Time = function (now) {
   if (settings.hours) {
     let length = 360 / settings.hours
     let hour = time.degrees / length
-    time.hour = Math.floor(hour)
-    time.minute = (hour - time.hour) * length
+    time.hours = Math.floor(hour)
+    time.minutes = (hour - time.hours) * length
   }
 
   return time
@@ -168,29 +176,44 @@ let get360Time = function (now) {
 
 let drawClock = function () {
   let now = new Date()
-
   let time = get360Time(now)
 
-  // Reset ticks + degrees when it's a new day, ticks when it's a new degree
-  if (time.degrees < degrees) {
+  if (systemSettings.log) {
+    let calculated = midnight + (time.degrees * 240000 + time.ticks * 2400)
+    let diff = parseInt(now.getTime() - calculated)
+
+    g.setColor('#000000')
+      .fillRect(0, screen.height - 15, screen.width, screen.height)
+      .setColor('#ffffff')
+      .setFont('4x6', 2)
+      .drawString(
+        `${require('locale').time(now)} ${diff > -1 ? '+' + diff : diff}`,
+        screen.middle,
+        screen.height - 7
+      )
+  }
+
+  // Reset ticks + degrees/hours when it's a new day, ticks when it's a new degree
+  if ((settings.hours && time.hours < hours) || time.degrees < degrees) {
     newDay()
     resetArea(2)
     ticks = -1
     degrees = -1
+    hours = -1
   } else if (degrees > -1 && (time.degrees > degrees || time.ticks < ticks)) {
     resetArea(1)
     ticks = -1
   }
 
   // Update degrees number
-  if (time.degrees > degrees) {
+  if ((settings.hours && time.hours < hours) || time.degrees > degrees) {
     g.setColor('#000000')
       .fillRect(73, 80, 168, 125)
       .setColor(colors.degrees)
       .setFont('Vector', 45)
       .setFontAlign(0, 0)
       .drawString(
-        settings.hours ? time.hour : zeroPad(time.degrees, 3),
+        settings.hours ? time.hours : zeroPad(time.degrees, 3),
         screen.center,
         screen.middle - 20
       )
@@ -204,7 +227,7 @@ let drawClock = function () {
       .setFont('Vector', 25)
       .setFontAlign(0, 0)
       .drawString(
-        (settings.hours ? `${zeroPad(time.minute, 2)}.` : '') +
+        (settings.hours ? `${zeroPad(time.minutes, 2)}.` : '') +
           zeroPad(time.ticks, 2),
         screen.center,
         screen.middle + 30
@@ -240,14 +263,12 @@ let startClock = function () {
   let now = new Date()
   let degree = (now.getTime() - midnight) / 240000
   let tick = (degree - Math.floor(degree)) * 100
-  let nextTick = (tick - Math.floor(tick)) * 2400
+  let nextTick = Math.max(0, 2400 - (tick - Math.floor(tick)) * 2400)
 
-  // Start interval timer at the next tick
   setTimeout(() => {
     timer = setInterval(drawClock, 2400)
-  }, Math.max(0, 2400 - nextTick))
+  }, nextTick)
 
-  // Draw clock immediately
   drawClock()
 }
 
@@ -262,6 +283,5 @@ g.clear()
 Bangle.loadWidgets()
 Bangle.drawWidgets()
 
-// Draw clock
 drawOutlines(2)
 startClock()
