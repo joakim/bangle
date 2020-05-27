@@ -35,7 +35,7 @@
         min: -180,
         max: 180,
         step: 1,
-        format: (v) => (v > 0 ? '+' : '-') + `${v}°`,
+        format: (v) => (v > 0 ? '+' + v : v) + '°',
         onchange: (v) => {
           settings.timezone = v || 0
           updateSettings()
