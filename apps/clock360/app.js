@@ -245,8 +245,8 @@ let newDay = function () {
 
   if (settings.sun && settings.lat && settings.lon) {
     let date = new Date(midnight - settings.timezone * 240)
-    sunrise = require('sun.js').sunrise(date, settings.lat, settings.lon)
-    sunset = require('sun.js').sunset(date, settings.lat, settings.lon)
+    sunrise = require('clock360.sun.js').sunrise(date, settings.lat, settings.lon)
+    sunset = require('clock360.sun.js').sunset(date, settings.lat, settings.lon)
     console.log(new Date(sunrise), new Date(sunset))
   }
 }
