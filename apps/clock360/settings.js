@@ -5,9 +5,11 @@
 
   function resetSettings() {
     settings = {
+      division: 0,
       timezone: 0,
-      hours: 0,
-      offset: 270,
+      lat: 0,
+      lon: 0,
+      origin: 270,
       menuButton: 22,
     }
     updateSettings()
@@ -16,7 +18,7 @@
   let settings = storage.readJSON('clock360.json', 1)
   if (!settings) resetSettings()
 
-  let offsets = ['E', 'N', 'W', 'S']
+  let origins = ['E', 'N', 'W', 'S']
 
   let buttons = [
     [24, 'BTN1'],
@@ -30,6 +32,20 @@
     let menu = {
       '': { title: '360 Clock' },
       '< Back': back,
+      Hours: {
+        min: 0,
+        max: 24,
+        value: 0 | settings.division,
+        onchange: (v) => {
+          // Skip divisions leaving a remainder
+          if ((360 / v) % 1) {
+            menu['Hours'].value = v += v > settings.division ? 1 : -1
+          }
+
+          settings.division = v || 0
+          updateSettings()
+        },
+      },
       'Time Zone': {
         value: 0 | settings.timezone,
         min: -180,
@@ -41,28 +57,37 @@
           updateSettings()
         },
       },
-      'Hours Per Day': {
-        min: 0,
-        max: 24,
-        value: 0 | settings.hours,
-        onchange: (v) => {
-          // Skip divisons leaving a remainder
-          if ((360 / v) % 1) {
-            menu['Hours Per Day'].value = v += v > settings.hours ? 1 : -1
-          }
+      'Find Location': () => {
+        Bangle.setGPSPower(1)
 
-          settings.hours = v || 0
-          updateSettings()
-        },
+        E.showPrompt('Waiting for GPS...', {
+          title: 'Find Location',
+          buttons: { Cancel: true },
+        }).then(() => {
+          Bangle.setGPSPower(0)
+          showSettingsMenu()
+        })
+
+        Bangle.on('GPS', (fix) => {
+          if (fix.lat && fix.lon) {
+            settings.lat = fix.lat
+            settings.lon = fix.lon
+            settings.timezone = Math.floor(fix.lon)
+            updateSettings()
+            Bangle.setGPSPower(0)
+            E.showMessage('Time Zone set')
+            setTimeout(showSettingsMenu, 50)
+          }
+        })
       },
       'Starting Point': {
-        value: 0 | settings.offset,
+        value: 0 | settings.origin,
         min: 0,
         max: 270,
         step: 90,
-        format: (v) => offsets[v / 90],
+        format: (v) => origins[v / 90],
         onchange: (v) => {
-          settings.offset = v || 0
+          settings.origin = v || 0
           updateSettings()
         },
       },
