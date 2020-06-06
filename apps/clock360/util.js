@@ -1,4 +1,7 @@
-const systemSettings = storage.readJSON('setting.json', 1) || { timezone: 0 }
+exports.systemSettings = storage.readJSON('setting.json', 1) || {
+  timezone: 0,
+  log: 0,
+}
 
 exports.settings = storage.readJSON('clock360.json', 1) || {
   timezone: 0,
@@ -27,5 +30,3 @@ exports.getMidnight = (now) => {
 
   return midnight
 }
-
-
