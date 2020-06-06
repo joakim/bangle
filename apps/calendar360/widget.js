@@ -34,7 +34,7 @@
   }
 
   function startTimer() {
-    let now = new Date().getTime()
+    let now = Date.now()
     // todo Adjust for 360 timezone
     let midnight = new Date(now).setHours(24, 0, 0, 0)
 
@@ -50,7 +50,7 @@
   }
 
   function draw(widget, ts) {
-    let date = date360(ts || new Date().getTime())
+    let date = date360(ts || Date.now())
 
     g.reset()
       .setFont('Vector', size)
