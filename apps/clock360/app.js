@@ -222,21 +222,6 @@ let resetArea = function (area) {
 
 let newDay = function () {
   midnight = util.getMidnight(Date.now())
-
-  if (util.settings.sun && util.settings.lat && util.settings.lon) {
-    let date = new Date(midnight - util.settings.timezone * 240)
-    sunrise = require('sun.js').sunrise(
-      date,
-      util.settings.lat,
-      util.settings.lon
-    )
-    sunset = require('sun.js').sunset(
-      date,
-      util.settings.lat,
-      util.settings.lon
-    )
-    console.log(new Date(sunrise), new Date(sunset))
-  }
 }
 
 let getTime360 = function (now) {
