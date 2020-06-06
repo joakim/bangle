@@ -1,28 +1,13 @@
-const storage = require('Storage')
+const util = require('clock360.util.js')
 
-const systemSettings = storage.readJSON('setting.json', 1) || {
-  timezone: 0,
-  log: 0,
-}
-
-const settings = storage.readJSON('clock360.json', 1) || {
-  timezone: 0,
-  division: 0,
-  origin: 270,
-  sun: false,
-  lat: 0,
-  lon: 0,
-  menuButton: 22,
-}
-
-setWatch(Bangle.showLauncher, settings.menuButton, {
+setWatch(Bangle.showLauncher, util.settings.menuButton, {
   repeat: false,
   edge: 'falling',
 })
 
 const screen = {
   width: g.getWidth(),
-  height: g.getWidth(),
+  height: g.getHeight(),
   middle: g.getWidth() / 2,
   center: g.getHeight() / 2,
 }
@@ -63,12 +48,17 @@ let getArcXY = function (centerX, centerY, radius, angle) {
 
 let drawMajor = function (degree, color) {
   rad = screen.height / 2 - 20
-  r1 = getArcXY(screen.middle, screen.center, rad, degree - settings.origin)
+  r1 = getArcXY(
+    screen.middle,
+    screen.center,
+    rad,
+    degree - util.settings.origin
+  )
   r2 = getArcXY(
     screen.middle,
     screen.center,
     rad - 10,
-    degree - settings.origin
+    degree - util.settings.origin
   )
   g.setColor(color).drawLine(r1[0], r1[1], r2[0], r2[1])
 }
@@ -79,13 +69,13 @@ let drawMinor = function (tick, color) {
     screen.middle,
     screen.center,
     rad,
-    tick * (360 / 100) - settings.origin
+    tick * (360 / 100) - util.settings.origin
   )
   r2 = getArcXY(
     screen.middle,
     screen.center,
     rad - 10,
-    tick * (360 / 100) - settings.origin
+    tick * (360 / 100) - util.settings.origin
   )
   g.setColor(color).drawLine(r1[0], r1[1], r2[0], r2[1])
 }
@@ -135,8 +125,8 @@ let drawOutlines = function (area) {
     ).drawCircle(screen.middle, screen.center, screen.height / 2 - areas[2] + 2)
 
     // Draw major markers
-    if (settings.division) {
-      let degrees = 360 / settings.division
+    if (util.settings.division) {
+      let degrees = 360 / util.settings.division
       for (let i = 0; i < 360; i += degrees) {
         drawMajor(i, colors.outline)
       }
@@ -145,27 +135,27 @@ let drawOutlines = function (area) {
 }
 
 let drawClock = function () {
-  let timestamp = new Date().getTime()
+  let timestamp = Date.now()
   let time = getTime360(timestamp)
 
-  if (systemSettings.log) {
-    let calculated = midnight + (time.degrees * 240000 + time.ticks * 2400)
-    let diff = parseInt(timestamp - calculated)
+  // if (util.systemSettings.log) {
+  //   let calculated = midnight + (time.degrees * 240000 + time.ticks * 2400)
+  //   let diff = parseInt(timestamp - calculated)
 
-    g.setColor('#000000')
-      .fillRect(0, screen.height - 15, screen.width, screen.height)
-      .setColor('#ffffff')
-      .setFont('4x6', 2)
-      .drawString(
-        diff > -1 ? '+' + diff : diff,
-        screen.middle,
-        screen.height - 7
-      )
-  }
+  //   g.setColor('#000000')
+  //     .fillRect(0, screen.height - 15, screen.width, screen.height)
+  //     .setColor('#ffffff')
+  //     .setFont('4x6', 2)
+  //     .drawString(
+  //       diff > -1 ? '+' + diff : diff,
+  //       screen.middle,
+  //       screen.height - 7
+  //     )
+  // }
 
   // Reset major + minor when it's a new day, only minor when it's a new major
   if (
-    (settings.division && time.division < division) ||
+    (util.settings.division && time.division < division) ||
     time.degrees < degrees
   ) {
     newDay()
@@ -180,16 +170,18 @@ let drawClock = function () {
 
   // Update major number
   if (
-    (settings.division && time.division < division) ||
+    (util.settings.division && time.division < division) ||
     time.degrees > degrees
   ) {
-    writeMajor(settings.division ? time.division : zeroPad(time.degrees, 3))
+    writeMajor(
+      util.settings.division ? time.division : zeroPad(time.degrees, 3)
+    )
   }
 
   // Update minor number
   if (time.ticks > ticks) {
     writeMinor(
-      (settings.division ? `${zeroPad(time.minutes, 2)}.` : '') +
+      (util.settings.division ? `${zeroPad(time.minutes, 2)}.` : '') +
         zeroPad(time.ticks, 2)
     )
   }
@@ -199,7 +191,9 @@ let drawClock = function () {
     for (i = degrees + 1; i <= time.degrees; i++) {
       drawMajor(
         i,
-        i % (360 / (settings.division || 1)) ? colors.major : colors.highlight
+        i % (360 / (util.settings.division || 1))
+          ? colors.major
+          : colors.highlight
       )
     }
 
@@ -227,26 +221,20 @@ let resetArea = function (area) {
 }
 
 let newDay = function () {
-  let now = new Date().getTime()
+  midnight = util.getMidnight(Date.now())
 
-  midnight = new Date(now).setHours(
-    0, // In the midnight hour
-    systemSettings.timezone * 60, // 24-hour timezone (in minutes)
-    -(settings.timezone * 240), // 360-degree timezone (in seconds)
-    0
-  )
-
-  // Correct the date if it's off by one calendar day
-  if (now - midnight > 86400000) {
-    midnight += 86400000
-  } else if (now - midnight < 0) {
-    midnight -= 86400000
-  }
-
-  if (settings.sun && settings.lat && settings.lon) {
-    let date = new Date(midnight - settings.timezone * 240)
-    sunrise = require('clock360.sun.js').sunrise(date, settings.lat, settings.lon)
-    sunset = require('clock360.sun.js').sunset(date, settings.lat, settings.lon)
+  if (util.settings.sun && util.settings.lat && util.settings.lon) {
+    let date = new Date(midnight - util.settings.timezone * 240)
+    sunrise = require('sun.js').sunrise(
+      date,
+      util.settings.lat,
+      util.settings.lon
+    )
+    sunset = require('sun.js').sunset(
+      date,
+      util.settings.lat,
+      util.settings.lon
+    )
     console.log(new Date(sunrise), new Date(sunset))
   }
 }
@@ -263,8 +251,8 @@ let getTime360 = function (now) {
     }, {})
 
   // Calculate division
-  if (settings.division) {
-    let length = 360 / settings.division
+  if (util.settings.division) {
+    let length = 360 / util.settings.division
     let part = time.degrees / length
     time.division = Math.floor(part)
     time.minutes = (part - time.division) * length
@@ -277,7 +265,7 @@ let startClock = function () {
   newDay()
 
   // Calibrate timer by calculating milliseconds until next tick
-  let major = (new Date().getTime() - midnight) / (2400 * 100)
+  let major = (Date.now() - midnight) / (2400 * 100)
   let minor = (major - Math.floor(major)) * 100
   let nextTick = Math.max(0, 2400 - (minor - Math.floor(minor)) * 2400)
 
