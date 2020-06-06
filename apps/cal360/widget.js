@@ -25,12 +25,14 @@
       return ts > (YEAR_12020 + newyear) * 100000
     })
 
-    return util.expand({
-      year: 2030 - yearIndex + 10000,
-      dayOfYear: Math.ceil(
-        (ts - (YEAR_12020 + YEAR_TABLE[yearIndex]) * 100000) / 86400000
-      ),
-    })
+    return yearIndex > -1
+      ? util.expand({
+          year: 2030 - yearIndex + 10000,
+          dayOfYear: Math.ceil(
+            (ts - (YEAR_12020 + YEAR_TABLE[yearIndex]) * 100000) / 86400000
+          ),
+        })
+      : {}
   }
 
   function startTimer() {
@@ -57,7 +59,7 @@
       .setFontAlign(0, 0)
       .setColor('#00aaff')
       .drawString(
-        widget.format(date),
+        date.year ? widget.format(date) : '...',
         this.x + widget.width / 2,
         this.y + size / 2
       )
