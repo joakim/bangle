@@ -1570,11 +1570,13 @@
   { "id": "calendar360",
     "name": "360 Calendar",
     "shortName": "360 Calendar",
-    "version":"0.16",
+    "version":"0.17",
     "description": "The calendar year in 360 degrees.",
     "tags": "calendar,tool",
+    "allow_emulator": true,
     "storage": [
       {"name": "calendar360.app.js", "url": "app.js"},
+      {"name": "calendar360.util.js", "url": "util.js"},
       {"name": "calendar360.wid.js", "url": "widget.js"}
     ]
   }
