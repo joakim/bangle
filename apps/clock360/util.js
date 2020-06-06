@@ -1,3 +1,5 @@
+const storage = require('Storage')
+
 exports.systemSettings = storage.readJSON('setting.json', 1) || {
   timezone: 0,
   log: 0,
