@@ -262,7 +262,7 @@ let startClock = function () {
 }
 
 let stopClock = function () {
-  clearInterval(timer)
+  if (timer) clearInterval(timer)
 }
 
 Bangle.on('lcdPower', (on) => (on ? startClock() : stopClock()))
