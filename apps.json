@@ -1570,7 +1570,7 @@
   { "id": "cal360",
     "name": "360 Calendar",
     "shortName": "360 Calendar",
-    "version":"0.18",
+    "version":"0.19",
     "description": "The year in 360 degrees.",
     "tags": "calendar,tool",
     "allow_emulator": true,
