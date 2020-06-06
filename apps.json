@@ -1567,17 +1567,17 @@
       {"name": "clock360.img", "url": "app-icon.js", "evaluate": true}
     ]
   },
-  { "id": "calendar360",
+  { "id": "cal360",
     "name": "360 Calendar",
     "shortName": "360 Calendar",
-    "version":"0.17",
-    "description": "The calendar year in 360 degrees.",
+    "version":"0.18",
+    "description": "The year in 360 degrees.",
     "tags": "calendar,tool",
     "allow_emulator": true,
     "storage": [
-      {"name": "calendar360.app.js", "url": "app.js"},
-      {"name": "calendar360.util.js", "url": "util.js"},
-      {"name": "calendar360.wid.js", "url": "widget.js"}
+      {"name": "cal360.app.js", "url": "app.js"},
+      {"name": "cal360.util.js", "url": "util.js"},
+      {"name": "cal360.wid.js", "url": "widget.js"}
     ]
   }
 ]
