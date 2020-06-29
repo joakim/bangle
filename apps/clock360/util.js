@@ -20,8 +20,8 @@ exports.systemSettings = storage.readJSON('setting.json', 1) || {
 exports.getMidnight = (now) => {
   let midnight = new Date(now).setHours(
     0, // In the midnight hour
-    systemSettings.timezone * 60, // 24-hour timezone (in minutes)
-    -(settings.timezone * 240), // 360-degree timezone (in seconds)
+    exports.systemSettings.timezone * 60, // 24-hour timezone (in minutes)
+    -(exports.settings.timezone * 240), // 360-degree timezone (in seconds)
     0
   )
 
