@@ -30,8 +30,6 @@ let midnight = 0
 let degrees = -1
 let ticks = -1
 let division = -1
-let sunrise = -1
-let sunset = -1
 
 let zeroPad = function (str, len) {
   return String('0'.repeat(len - 1) + str).slice(-len)
@@ -168,22 +166,24 @@ let drawClock = function () {
     ticks = -1
   }
 
-  // Update major number
-  if (
-    (util.settings.division && time.division < division) ||
-    time.degrees > degrees
-  ) {
-    writeMajor(
-      util.settings.division ? time.division : zeroPad(time.degrees, 3)
-    )
-  }
+  if (settings.digits) {
+    // Update major number
+    if (
+      (util.settings.division && time.division < division) ||
+      time.degrees > degrees
+    ) {
+      writeMajor(
+        util.settings.division ? time.division : zeroPad(time.degrees, 3)
+      )
+    }
 
-  // Update minor number
-  if (time.ticks > ticks) {
-    writeMinor(
-      (util.settings.division ? `${zeroPad(time.minutes, 2)}.` : '') +
-        zeroPad(time.ticks, 2)
-    )
+    // Update minor number
+    if (time.ticks > ticks) {
+      writeMinor(
+        (util.settings.division ? `${zeroPad(time.minutes, 2)}.` : '') +
+          zeroPad(time.ticks, 2)
+      )
+    }
   }
 
   // Draw major bars
