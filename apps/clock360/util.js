@@ -1,18 +1,20 @@
 const storage = require('Storage')
 
-exports.systemSettings = storage.readJSON('setting.json', 1) || {
-  timezone: 0,
-  log: 0,
-}
-
-exports.settings = storage.readJSON('clock360.json', 1) || {
+exports.defaults = {
   timezone: 0,
   division: 0,
   origin: 270,
-  sun: false,
+  digits: true,
   lat: 0,
   lon: 0,
   menuButton: 22,
+}
+
+exports.settings = storage.readJSON('clock360.json', 1) || exports.defaults
+
+exports.systemSettings = storage.readJSON('setting.json', 1) || {
+  timezone: 0,
+  log: 0,
 }
 
 exports.getMidnight = (now) => {
