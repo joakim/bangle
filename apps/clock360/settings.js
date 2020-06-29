@@ -1,18 +1,12 @@
 ;(function (back) {
+  const util = require('clock360.util.js')
+
   function updateSettings() {
     storage.write('clock360.json', settings)
   }
 
   function resetSettings() {
-    settings = {
-      timezone: 0,
-      division: 0,
-      origin: 270,
-      sun: false,
-      lat: 0,
-      lon: 0,
-      menuButton: 22,
-    }
+    settings = util.defaults
     updateSettings()
   }
 
@@ -69,11 +63,11 @@
           updateSettings()
         },
       },
-      'Sunrise/Sunset': {
-        value: settings.sun,
+      Digits: {
+        value: settings.digits,
         format: (v) => (v ? 'On' : 'Off'),
         onchange: () => {
-          settings.sun = !settings.sun
+          settings.digits = !settings.digits
           updateSettings()
         },
       },
