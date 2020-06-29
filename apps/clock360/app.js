@@ -166,7 +166,7 @@ let drawClock = function () {
     ticks = -1
   }
 
-  if (settings.digits) {
+  if (util.settings.digits) {
     // Update major number
     if (
       (util.settings.division && time.division < division) ||
