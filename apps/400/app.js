@@ -216,7 +216,7 @@ function drawClock() {
 
   // Draw major bars
   if (time.degrees > degrees) {
-    for (i = degrees + 1; i <= time.degrees; i++) {
+    for (let i = degrees + 1; i <= time.degrees; i++) {
       drawMajor(
         i,
         i % (400 / (settings.division || 1))
@@ -230,7 +230,7 @@ function drawClock() {
 
   // Draw minor bars
   if (time.ticks > ticks) {
-    for (i = ticks + 1; i <= time.ticks; i++) {
+    for (let i = ticks + 1; i <= time.ticks; i++) {
       drawMinor(i, (i / 25) % 1 ? colors.minor : colors.highlight);
     }
 
