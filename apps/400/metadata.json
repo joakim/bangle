@@ -1,0 +1,25 @@
+{
+  "id": "400",
+  "name": "400 clock",
+  "shortName": "400",
+  "version": "0.01",
+  "description": "Time in 400 gradians.",
+  "icon": "app.png",
+  "tags": "clock",
+  "type": "clock",
+  "supports": [
+    "BANGLEJS"
+  ],
+  "readme": "README.md",
+  "storage": [
+    {
+      "name": "400.app.js",
+      "url": "app.js"
+    },
+    {
+      "name": "400.img",
+      "url": "app-icon.js",
+      "evaluate": true
+    }
+  ]
+}
