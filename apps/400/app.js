@@ -79,14 +79,14 @@ function getArcXY(centerX, centerY, radius, angle) {
 }
 
 function drawMajor(degree, color) {
-  rad = screen.height / 2 - 20;
-  r1 = getArcXY(
+  let rad = screen.height / 2 - 20;
+  let r1 = getArcXY(
     screen.middle,
     screen.center,
     rad,
     degree - settings.origin
   );
-  r2 = getArcXY(
+  let r2 = getArcXY(
     screen.middle,
     screen.center,
     rad - 10,
@@ -96,14 +96,14 @@ function drawMajor(degree, color) {
 }
 
 function drawMinor(tick, color) {
-  rad = screen.height / 2 - 37;
-  r1 = getArcXY(
+  let rad = screen.height / 2 - 37;
+  let r1 = getArcXY(
     screen.middle,
     screen.center,
     rad,
     tick * (400 / 100) - settings.origin
   );
-  r2 = getArcXY(
+  let r2 = getArcXY(
     screen.middle,
     screen.center,
     rad - 10,
